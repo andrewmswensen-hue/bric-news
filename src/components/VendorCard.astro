@@ -1,0 +1,48 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  vendor: CollectionEntry<'vendors'>;
+  compact?: boolean;
+}
+
+const { vendor, compact = false } = Astro.props;
+const v = vendor.data;
+const slug = vendor.slug;
+
+const categoryLabel = v.category.replace(/-/g, ' ');
+---
+
+<article class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col">
+  {v.preferred && (
+    <span class="ribbon-preferred absolute top-4 right-4">Preferred</span>
+  )}
+
+  <div class="mb-2 pr-20">
+    <span class="chip capitalize">{categoryLabel}</span>
+  </div>
+
+  <h3 class="font-heading font-bold text-lg leading-snug mb-1">
+    <a href={`/vendors/${slug}`} class="text-charcoal hover:text-brick no-underline">{v.name}</a>
+  </h3>
+
+  <p class="text-sm text-charcoal leading-relaxed mb-3">{v.description}</p>
+
+  {v.preferred && v.preferred_reason && !compact && (
+    <p class="text-sm text-slate italic border-l-2 border-brick pl-3 mb-3">
+      <span class="not-italic font-medium text-brick uppercase tracking-wider text-xs mr-1">Why preferred:</span>
+      {v.preferred_reason}
+    </p>
+  )}
+
+  {v.sub_categories.length > 0 && (
+    <div class="mt-auto flex flex-wrap gap-1.5 pt-2">
+      {v.sub_categories.slice(0, 4).map(sc => <span class="chip capitalize">{sc.replace(/-/g, ' ')}</span>)}
+    </div>
+  )}
+
+  <div class="flex items-center gap-3 mt-3 text-xs text-slate">
+    {v.website && <a href={v.website} target="_blank" rel="noopener noreferrer" class="hover:text-brick no-underline">Website</a>}
+    {v.phone && <a href={`tel:${v.phone}`} class="hover:text-brick no-underline">{v.phone}</a>}
+  </div>
+</article>

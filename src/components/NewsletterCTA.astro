@@ -1,0 +1,57 @@
+---
+interface Props {
+  inline?: boolean;
+  heading?: string;
+  body?: string;
+}
+
+const {
+  inline = false,
+  heading = 'Get the weekly BRIC brief.',
+  body = 'Columbus-metro policy, local market data, and vendor picks, in your inbox every Friday. Free, no fluff.',
+} = Astro.props;
+---
+
+{inline ? (
+  <!-- Beehiiv embed placeholder: replace this form action with the real Beehiiv embed when available. -->
+  <form
+    action="https://subscribe.example.beehiiv.com/subscribe"
+    method="post"
+    class="flex flex-col sm:flex-row gap-2"
+    data-beehiiv-placeholder
+  >
+    <input
+      type="email"
+      name="email"
+      required
+      placeholder="you@example.com"
+      class="input-email flex-1"
+      aria-label="Email address"
+    />
+    <button type="submit" class="btn-primary whitespace-nowrap">Subscribe</button>
+  </form>
+) : (
+  <section class="module-band bg-bone-2 border-y border-rule">
+    <div class="container-content text-center max-w-prose mx-auto">
+      <h2 class="module-heading">{heading}</h2>
+      <p class="module-sub">{body}</p>
+      <!-- Beehiiv embed placeholder: replace with real Beehiiv embed once publication is live. -->
+      <form
+        action="https://subscribe.example.beehiiv.com/subscribe"
+        method="post"
+        class="flex flex-col sm:flex-row gap-2 max-w-[400px] mx-auto"
+        data-beehiiv-placeholder
+      >
+        <input
+          type="email"
+          name="email"
+          required
+          placeholder="you@example.com"
+          class="input-email flex-1"
+          aria-label="Email address"
+        />
+        <button type="submit" class="btn-primary whitespace-nowrap">Subscribe</button>
+      </form>
+    </div>
+  </section>
+)}

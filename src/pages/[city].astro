@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ItemCard from '../components/ItemCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const cities = await getCollection('cities');
+  return cities.map((c) => ({ params: { city: c.slug }, props: { city: c } }));
+}
+
+const { city } = Astro.props;
+const { Content } = await city.render();
+const citySlug = city.slug as any;
+
+const allItems = await getCollection('items');
+const cityItems = allItems
+  .filter((i) => (i.data.municipalities as readonly string[]).includes(citySlug))
+  .sort((a, b) => b.data.published_at.getTime() - a.data.published_at.getTime());
+---
+
+<BaseLayout title={`${city.data.name} – BRIC.News`} description={`News, policy, and resources for real estate investors in ${city.data.name}.`}>
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal mb-4">{city.data.name}</h1>
+
+      <div class="prose max-w-prose mb-10 text-charcoal">
+        <Content />
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="md:col-span-2">
+          <h2 class="font-heading font-bold text-brick text-xl mb-4">Latest for {city.data.name}</h2>
+          {cityItems.length === 0 ? (
+            <p class="text-slate italic">No items for {city.data.name} yet.</p>
+          ) : (
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {cityItems.map((item) => <ItemCard item={item} showPolicyBadge={item.data.content_type === 'policy'} />)}
+            </div>
+          )}
+        </div>
+
+        <aside>
+          {city.data.resources.length > 0 && (
+            <div class="bg-bone-2 border border-rule p-5 sticky top-6">
+              <h3 class="font-heading font-bold text-charcoal text-base mb-3">{city.data.name} resources</h3>
+              <ul class="space-y-2 text-sm">
+                {city.data.resources.map((r) => (
+                  <li>
+                    <a href={r.url} target="_blank" rel="noopener noreferrer" class="text-brick no-underline hover:underline">
+                      {r.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </aside>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

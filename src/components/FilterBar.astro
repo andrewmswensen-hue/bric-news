@@ -1,0 +1,72 @@
+---
+interface FilterGroup {
+  label: string;
+  attr: string;
+  options: { value: string; label: string }[];
+}
+
+interface Props {
+  groups: FilterGroup[];
+  /** CSS selector for items being filtered. Each item should have data-<attr> matching filter attrs. */
+  target: string;
+}
+
+const { groups, target } = Astro.props;
+---
+
+<div class="bg-bone-2 border border-rule p-4 mb-6" data-filter-bar data-target={target}>
+  <div class="flex flex-wrap gap-6">
+    {groups.map(group => (
+      <div class="flex flex-col gap-2">
+        <span class="text-xs uppercase tracking-wider text-slate font-medium">{group.label}</span>
+        <div class="flex flex-wrap gap-1.5" data-filter-group={group.attr}>
+          <button type="button" class="chip cursor-pointer capitalize" data-filter-value="all" aria-pressed="true">All</button>
+          {group.options.map(opt => (
+            <button type="button" class="chip cursor-pointer capitalize" data-filter-value={opt.value} aria-pressed="false">{opt.label}</button>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('[data-filter-bar]').forEach((bar) => {
+    const target = (bar as HTMLElement).dataset.target;
+    if (!target) return;
+
+    const items = document.querySelectorAll<HTMLElement>(target);
+    const state: Record<string, string> = {};
+
+    bar.querySelectorAll<HTMLElement>('[data-filter-group]').forEach((group) => {
+      const attr = group.dataset.filterGroup!;
+      state[attr] = 'all';
+
+      group.querySelectorAll<HTMLButtonElement>('button[data-filter-value]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          group.querySelectorAll('button').forEach(b => {
+            b.setAttribute('aria-pressed', 'false');
+            b.classList.remove('bg-brick', 'text-bone');
+          });
+          btn.setAttribute('aria-pressed', 'true');
+          btn.classList.add('bg-brick', 'text-bone');
+          state[attr] = btn.dataset.filterValue!;
+          applyFilters();
+        });
+      });
+    });
+
+    function applyFilters() {
+      items.forEach((item) => {
+        let show = true;
+        for (const [attr, val] of Object.entries(state)) {
+          if (val === 'all') continue;
+          const itemVal = item.dataset[attr] || '';
+          const tokens = itemVal.split(',').map(t => t.trim());
+          if (!tokens.includes(val)) { show = false; break; }
+        }
+        item.style.display = show ? '' : 'none';
+      });
+    }
+  });
+</script>

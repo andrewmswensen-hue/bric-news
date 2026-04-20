@@ -1,0 +1,63 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VendorCard from '../../components/VendorCard.astro';
+import FilterBar from '../../components/FilterBar.astro';
+import { getCollection } from 'astro:content';
+import { MUNICIPALITIES, VENDOR_CATEGORIES } from '../../content/config';
+
+const all = await getCollection('vendors');
+const vendors = all.sort((a, b) => {
+  const c = a.data.category.localeCompare(b.data.category);
+  return c !== 0 ? c : a.data.name.localeCompare(b.data.name);
+});
+
+const preferred = vendors.filter((v) => v.data.preferred);
+
+const categoryOptions = VENDOR_CATEGORIES.map((c) => ({ value: c, label: c.replace(/-/g, ' ') }));
+const muniOptions = MUNICIPALITIES.map((m) => ({ value: m, label: m.replace(/-/g, ' ') }));
+---
+
+<BaseLayout title="Columbus Vendor Directory – BRIC.News" description="Curated Columbus-metro vendor directory for real estate investors and landlords.">
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal mb-2">Columbus Investor Vendor Directory</h1>
+      <p class="text-slate mb-2 max-w-prose">
+        Local vendors investors use across maintenance, legal, lending, insurance, real estate, and more. Every listing is free. Preferred designations are editorial picks based on stated criteria, not paid placements.
+      </p>
+      <p class="text-slate text-sm mb-10 max-w-prose">
+        Spotted something wrong? <a href="/about#corrections">Submit a correction</a>. Want off the list? <a href="/about#takedown">Takedown policy</a>. Vendor to add? <a href="mailto:vendors@bric.news">Email us</a>.
+      </p>
+
+      {preferred.length > 0 && (
+        <div class="mb-12">
+          <h2 class="font-heading font-bold text-brick text-xl mb-4">Preferred Picks</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {preferred.map((v) => <VendorCard vendor={v} />)}
+          </div>
+        </div>
+      )}
+
+      <h2 class="font-heading font-bold text-charcoal text-xl mb-4">Full Directory</h2>
+
+      <FilterBar
+        target="[data-vendor-item]"
+        groups={[
+          { label: 'Category', attr: 'category', options: categoryOptions },
+          { label: 'Service area', attr: 'muni', options: muniOptions },
+        ]}
+      />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {vendors.map((v) => (
+          <div
+            data-vendor-item
+            data-category={v.data.category}
+            data-muni={v.data.service_area.join(',')}
+          >
+            <VendorCard vendor={v} compact />
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

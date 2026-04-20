@@ -1,0 +1,72 @@
+# BRIC.News supplemental ingest sources
+# All RSS feeds and Google News queries for non-policy content.
+# Policy items come from the Monday pipeline, not this file.
+
+sources:
+  # --- MARKET DATA ---
+  - type: rss_feed
+    url: https://www.fhfa.gov/AboutUs/Contact/Pages/News-Release-RSS.aspx
+    category: market_data
+    label: FHFA News Releases
+  - type: google_news_query
+    query: "Columbus Ohio rent report"
+    category: market_data
+    label: Columbus rent reports
+  - type: google_news_query
+    query: "Columbus Ohio housing market"
+    category: market_data
+    label: Columbus housing market
+  - type: google_news_query
+    query: "Franklin County property tax"
+    category: market_data
+    label: Franklin County property tax
+
+  # --- LOCAL BUSINESS NEWS ---
+  - type: rss_feed
+    url: https://www.dispatch.com/news/business/?format=rss
+    category: news
+    label: Columbus Dispatch Business
+  - type: google_news_query
+    query: "Columbus Business First real estate"
+    category: news
+    label: Columbus Business First real estate
+  - type: google_news_query
+    query: "Columbus Ohio development"
+    category: news
+    label: Columbus development
+
+  # --- EVENTS ---
+  - type: google_news_query
+    query: "Central Ohio REIA meeting"
+    category: event
+    label: Central Ohio REIA
+  - type: google_news_query
+    query: "BIA Central Ohio event"
+    category: event
+    label: BIA Central Ohio
+
+  # --- FEDERAL / STATE ---
+  - type: rss_feed
+    url: https://www.hud.gov/rss
+    category: news
+    label: HUD News
+  - type: google_news_query
+    query: "Ohio landlord tenant law"
+    category: news
+    label: Ohio landlord tenant
+
+  # --- COUNTY DATA ---
+  - type: google_news_query
+    query: "Franklin County Auditor"
+    category: market_data
+    label: Franklin County Auditor
+  - type: google_news_query
+    query: "Delaware County Ohio property"
+    category: market_data
+    label: Delaware County property
+
+# TODO: Verify and add direct RSS feeds for the following when URLs confirmed:
+# - Columbus Business First (paywall check needed)
+# - Central Ohio REIA events page
+# - Franklin County Auditor announcements page
+# - City of Columbus news feed

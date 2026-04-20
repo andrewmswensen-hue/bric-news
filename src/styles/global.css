@@ -1,0 +1,100 @@
+@import '@fontsource-variable/montserrat/index.css';
+@import '@fontsource-variable/inter/index.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brick:    #972E28;
+  --charcoal: #1F1F1F;
+  --bone:     #FAF9F6;
+  --bone-2:   #FCFBF8;
+  --slate:    #4A4A4A;
+  --gold:     #D4AF37;
+  --rule:     #E5E0D8;
+}
+
+@layer base {
+  html {
+    background-color: var(--bone);
+    color: var(--charcoal);
+    font-family: 'Inter Variable', Inter, ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--bone);
+    color: var(--charcoal);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat Variable', Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--charcoal);
+    letter-spacing: -0.01em;
+  }
+
+  a {
+    color: var(--brick);
+    text-underline-offset: 2px;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+
+  hr {
+    border: 0;
+    border-top: 1px solid var(--rule);
+  }
+}
+
+@layer components {
+  .container-content {
+    @apply mx-auto w-full max-w-content px-5 sm:px-6 lg:px-8;
+  }
+
+  .module-band {
+    @apply py-14 md:py-20;
+  }
+
+  .module-heading {
+    @apply font-heading font-bold text-brick text-2xl md:text-3xl tracking-tight;
+  }
+
+  .module-sub {
+    @apply text-slate text-base md:text-lg mt-2 mb-8;
+  }
+
+  .link-arrow {
+    @apply inline-flex items-center gap-1 text-brick font-medium no-underline hover:underline;
+  }
+
+  .chip {
+    @apply inline-block text-xs uppercase tracking-wide bg-rule/60 text-charcoal px-2 py-0.5 rounded font-medium;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-brick text-bone font-medium px-5 py-2.5 rounded-sm hover:opacity-90 no-underline;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center border border-charcoal text-charcoal font-medium px-5 py-2.5 rounded-sm hover:bg-charcoal hover:text-bone no-underline;
+  }
+
+  .input-email {
+    @apply w-full border border-rule bg-white px-4 py-2.5 rounded-sm focus:outline-none focus:border-brick text-charcoal;
+  }
+
+  .badge-policy {
+    @apply inline-block text-[10px] uppercase tracking-widest bg-brick text-bone px-2 py-0.5 rounded font-semibold;
+  }
+
+  .ribbon-preferred {
+    @apply inline-block text-[10px] uppercase tracking-widest bg-brick text-bone px-2 py-0.5 rounded font-semibold;
+  }
+}

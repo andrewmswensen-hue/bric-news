@@ -1,0 +1,38 @@
+---
+import { getCollection } from 'astro:content';
+import ItemCard from './ItemCard.astro';
+
+const all = await getCollection('items');
+const policy = all
+  .filter((i) => i.data.content_type === 'policy')
+  .sort((a, b) => {
+    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+    const rs = (b.data.relevance_score ?? 0) - (a.data.relevance_score ?? 0);
+    if (rs !== 0) return rs;
+    return b.data.published_at.getTime() - a.data.published_at.getTime();
+  })
+  .slice(0, 3);
+---
+
+<section class="module-band bg-bone">
+  <div class="container-content">
+    <div class="flex items-end justify-between flex-wrap gap-4 mb-2">
+      <div>
+        <h2 class="module-heading">This Week's Policy Watch</h2>
+        <p class="module-sub">What changed in Columbus-metro policy this week.</p>
+      </div>
+    </div>
+
+    {policy.length === 0 ? (
+      <p class="text-slate italic">No new policy items this week.</p>
+    ) : (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {policy.map((item) => <ItemCard item={item} showPolicyBadge />)}
+      </div>
+    )}
+
+    <p class="mt-6 text-right">
+      <a href="/policy" class="link-arrow">See all policy updates →</a>
+    </p>
+  </div>
+</section>

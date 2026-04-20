@@ -1,0 +1,52 @@
+---
+const navLinks = [
+  { href: '/policy', label: 'Policy' },
+  { href: '/news', label: 'News' },
+  { href: '/vendors', label: 'Vendors' },
+  { href: '/resources', label: 'Resources' },
+  { href: '/about', label: 'About' },
+];
+---
+
+<header class="border-b border-rule bg-bone">
+  <div class="container-content flex items-center justify-between py-4">
+    <a href="/" class="flex items-center gap-2 no-underline" aria-label="BRIC.News home">
+      <img src="/logos/bric-logo-color.svg" alt="BRIC" class="h-8 sm:h-9 w-auto" />
+      <span class="sr-only">BRIC.News</span>
+      <span aria-hidden="true" class="font-heading font-extrabold tracking-tight text-charcoal text-sm sm:text-base mt-0.5">.NEWS</span>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-7">
+      {navLinks.map(({ href, label }) => (
+        <a href={href} class="text-charcoal hover:text-brick no-underline font-medium text-sm uppercase tracking-wider">{label}</a>
+      ))}
+    </nav>
+
+    <button
+      id="nav-toggle"
+      class="md:hidden text-charcoal p-2"
+      aria-label="Toggle navigation"
+      aria-expanded="false"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div id="mobile-menu" class="hidden md:hidden bg-bone border-t border-rule">
+    <nav class="container-content flex flex-col py-4">
+      {navLinks.map(({ href, label }) => (
+        <a href={href} class="py-3 text-charcoal hover:text-brick no-underline font-medium uppercase tracking-wider border-b border-rule last:border-b-0">{label}</a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<script>
+  const toggle = document.getElementById('nav-toggle');
+  const menu = document.getElementById('mobile-menu');
+  toggle?.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!expanded));
+    menu?.classList.toggle('hidden');
+  });
+</script>

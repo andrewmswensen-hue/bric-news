@@ -1,0 +1,35 @@
+# env
+.env
+.env.local
+.env.*.local
+
+# node
+node_modules/
+
+# astro
+dist/
+.astro/
+
+# python
+__pycache__/
+scripts/__pycache__/
+*.pyc
+.venv/
+venv/
+
+# pipeline state
+scripts/state.json
+scripts/queue/*.json
+!scripts/queue/.gitkeep
+scripts/queue/processed/*.md
+scripts/queue/processed/*.json
+!scripts/queue/processed/.gitkeep
+scripts/queue/rejected/*.md
+scripts/queue/rejected/*.json
+!scripts/queue/rejected/.gitkeep
+
+# os / editors
+.DS_Store
+.vscode/
+.idea/
+*.swp

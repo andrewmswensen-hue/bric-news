@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VendorCard from '../../components/VendorCard.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const vendors = await getCollection('vendors');
+  return vendors.map((v) => ({ params: { slug: v.slug }, props: { vendor: v } }));
+}
+
+const { vendor } = Astro.props;
+const v = vendor.data;
+
+const all = await getCollection('vendors');
+const related = all
+  .filter((x) => x.slug !== vendor.slug && x.data.category === v.category)
+  .slice(0, 3);
+
+const categoryLabel = v.category.replace(/-/g, ' ');
+const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+---
+
+<BaseLayout title={`${v.name} – BRIC.News`} description={v.description}>
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <nav class="text-sm text-slate mb-6">
+        <a href="/vendors" class="hover:text-brick no-underline">Vendors</a>
+        <span class="mx-2">/</span>
+        <span class="capitalize">{categoryLabel}</span>
+      </nav>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-3 mb-3 flex-wrap">
+            <span class="chip capitalize">{categoryLabel}</span>
+            {v.preferred && <span class="ribbon-preferred">Preferred</span>}
+          </div>
+
+          <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal mb-4">{v.name}</h1>
+
+          <p class="text-lg text-charcoal leading-relaxed mb-6">{v.description}</p>
+
+          {v.preferred && v.preferred_reason && (
+            <aside class="bg-bone-2 border-l-4 border-brick p-4 mb-6">
+              <p class="text-xs uppercase tracking-wider text-brick font-semibold mb-2">Why BRIC lists this vendor as Preferred</p>
+              <p class="text-charcoal">{v.preferred_reason}</p>
+            </aside>
+          )}
+
+          {v.specialty_notes && (
+            <div class="mb-6">
+              <h3 class="font-heading font-bold text-charcoal text-base mb-2">Specialty notes</h3>
+              <p class="text-charcoal">{v.specialty_notes}</p>
+            </div>
+          )}
+
+          {v.sub_categories.length > 0 && (
+            <div class="mb-6">
+              <h3 class="font-heading font-bold text-charcoal text-base mb-2">Services</h3>
+              <div class="flex flex-wrap gap-1.5">
+                {v.sub_categories.map((s) => <span class="chip capitalize">{s.replace(/-/g, ' ')}</span>)}
+              </div>
+            </div>
+          )}
+
+          {v.service_area.length > 0 && (
+            <div class="mb-6">
+              <h3 class="font-heading font-bold text-charcoal text-base mb-2">Service area</h3>
+              <div class="flex flex-wrap gap-1.5">
+                {v.service_area.map((s) => <span class="chip capitalize">{s.replace(/-/g, ' ')}</span>)}
+              </div>
+            </div>
+          )}
+
+          <div class="text-sm text-slate">
+            <p>Licensed: {v.licensed ? 'Yes' : 'No'}{v.license_number ? ` · ${v.license_number}` : ''}</p>
+            {v.years_in_business && <p>Years in business: {v.years_in_business}</p>}
+          </div>
+        </div>
+
+        <aside class="md:col-span-1">
+          <div class="bg-bone-2 border border-rule p-5 sticky top-6">
+            <h3 class="font-heading font-bold text-charcoal text-base mb-4">Contact</h3>
+            <div class="space-y-3 text-sm">
+              {v.website && (
+                <a href={v.website} target="_blank" rel="noopener noreferrer" class="btn-primary w-full text-center">Visit website</a>
+              )}
+              {v.phone && (
+                <p><span class="text-slate">Phone:</span> <a href={`tel:${v.phone}`}>{v.phone}</a></p>
+              )}
+              {v.email && (
+                <p><span class="text-slate">Email:</span> <a href={`mailto:${v.email}`}>{v.email}</a></p>
+              )}
+              {v.address && (
+                <p><span class="text-slate">Address:</span><br/>{v.address}</p>
+              )}
+            </div>
+            <hr class="my-5"/>
+            <p class="text-xs text-slate mb-2">Last verified: {verified}</p>
+            <a href={`mailto:corrections@bric.news?subject=Issue%20with%20${encodeURIComponent(v.name)}`} class="text-xs text-brick no-underline hover:underline">Report an issue with this listing →</a>
+          </div>
+        </aside>
+      </div>
+
+      {related.length > 0 && (
+        <div class="mt-16">
+          <h2 class="font-heading font-bold text-charcoal text-xl mb-6 capitalize">Related vendors in {categoryLabel}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {related.map((rv) => <VendorCard vendor={rv} compact />)}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>

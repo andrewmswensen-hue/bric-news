@@ -1,0 +1,42 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ResourceCard from '../../components/ResourceCard.astro';
+import { getCollection } from 'astro:content';
+import { RESOURCE_CATEGORIES } from '../../content/config';
+
+const all = await getCollection('resources');
+const sorted = all.sort((a, b) => a.data.label.localeCompare(b.data.label));
+
+const CATEGORY_LABELS: Record<string, string> = {
+  government:    'Government offices & records',
+  tax:           'Tax & payments',
+  legal:         'Legal & courts',
+  'market-data': 'Market data',
+  events:        'Events & networking',
+  vendors:       'Vendor directory',
+};
+
+const grouped = RESOURCE_CATEGORIES.map((cat) => ({
+  category: cat,
+  label: CATEGORY_LABELS[cat] || cat,
+  resources: sorted.filter((r) => r.data.category === cat),
+})).filter((g) => g.resources.length > 0);
+---
+
+<BaseLayout title="Columbus Investor Resources – BRIC.News" description="Resources Columbus-area investors reach for repeatedly: auditor lookups, court records, event calendars, and more.">
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal mb-2">Columbus Investor Resources</h1>
+      <p class="text-slate mb-10 max-w-prose">The stuff you'd otherwise have to Google every time. County auditors, treasurer portals, court filings, statewide landlord-tenant law, and Columbus-area investor events.</p>
+
+      {grouped.map((group) => (
+        <section class="mb-12">
+          <h2 class="font-heading font-bold text-brick text-xl mb-4">{group.label}</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {group.resources.map((r) => <ResourceCard resource={r} />)}
+          </div>
+        </section>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

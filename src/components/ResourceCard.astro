@@ -1,0 +1,24 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  resource: CollectionEntry<'resources'>;
+  wide?: boolean;
+}
+
+const { resource, wide = false } = Astro.props;
+const r = resource.data;
+---
+
+<article class={`bg-bone-2 border border-rule p-5 h-full flex flex-col ${wide ? 'md:p-8' : ''}`}>
+  <h3 class={`font-heading font-bold leading-snug mb-2 ${wide ? 'text-xl' : 'text-base'}`}>
+    <a href={r.url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline inline-flex items-start gap-2">
+      <span>{r.label}</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-1 opacity-60"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </a>
+  </h3>
+  <p class={`text-slate ${wide ? 'text-base' : 'text-sm'}`}>{r.description}</p>
+  <div class="mt-auto pt-3">
+    <span class="chip capitalize">{r.category.replace('-', ' ')}</span>
+  </div>
+</article>

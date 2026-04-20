@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ItemCard from '../../components/ItemCard.astro';
+import FilterBar from '../../components/FilterBar.astro';
+import { getCollection } from 'astro:content';
+import { MUNICIPALITIES } from '../../content/config';
+
+const all = await getCollection('items');
+const items = all
+  .filter((i) => i.data.content_type !== 'policy')
+  .sort((a, b) => b.data.published_at.getTime() - a.data.published_at.getTime());
+
+const muniOptions = MUNICIPALITIES.map((m) => ({ value: m, label: m.replace(/-/g, ' ') }));
+const typeOptions = [
+  { value: 'news', label: 'News' },
+  { value: 'market_data', label: 'Market data' },
+  { value: 'event', label: 'Events' },
+];
+---
+
+<BaseLayout title="Columbus News – BRIC.News" description="Columbus-metro market data, development news, and investor events.">
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal mb-2">Columbus News for Investors</h1>
+      <p class="text-slate mb-8 max-w-prose">Market data, local development, and Columbus-area investor events.</p>
+
+      <FilterBar
+        target="[data-news-item]"
+        groups={[
+          { label: 'Type', attr: 'ctype', options: typeOptions },
+          { label: 'Municipality', attr: 'muni', options: muniOptions },
+        ]}
+      />
+
+      {items.length === 0 ? (
+        <p class="text-slate italic">No news items yet.</p>
+      ) : (
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {items.map((item) => (
+            <div
+              data-news-item
+              data-ctype={item.data.content_type}
+              data-muni={item.data.municipalities.join(',')}
+            >
+              <ItemCard item={item} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+</BaseLayout>
