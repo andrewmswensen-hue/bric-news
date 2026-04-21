@@ -102,6 +102,10 @@
     @apply inline-block text-[10px] uppercase tracking-widest bg-white text-brick border-2 border-brick px-2 py-[1px] rounded font-semibold;
   }
 
+  .badge-guide {
+    @apply inline-block text-[10px] uppercase tracking-widest bg-rule/60 text-charcoal px-2 py-0.5 rounded font-semibold;
+  }
+
   .ribbon-preferred {
     @apply inline-block text-[10px] uppercase tracking-widest bg-brick text-bone px-2 py-0.5 rounded font-semibold;
   }
