@@ -16,7 +16,7 @@ const stats = [
     value: '$342K',
     caption: 'Median home sale price',
     source: 'Columbus REALTORS',
-    href: '/news',
+    href: 'https://www.columbusrealtors.com/market-stats/',
   },
   {
     letter: 'R',
@@ -24,7 +24,7 @@ const stats = [
     value: '$1,545',
     caption: 'Median asking rent',
     source: 'Realtor.com, all rentals',
-    href: '/news',
+    href: 'https://www.realtor.com/research/data/',
   },
   {
     letter: 'I',
@@ -32,7 +32,7 @@ const stats = [
     value: '+3.8%',
     caption: 'Home price, year over year',
     source: 'FHFA HPI',
-    href: '/news',
+    href: 'https://www.fhfa.gov/DataTools/Downloads/Pages/House-Price-Index.aspx',
   },
   {
     letter: 'C',
@@ -40,7 +40,7 @@ const stats = [
     value: '6.8%',
     caption: 'Rental vacancy rate',
     source: 'U.S. Census HVS',
-    href: '/news',
+    href: 'https://www.census.gov/housing/hvs/',
   },
 ];
 ---
@@ -49,7 +49,12 @@ const stats = [
   <div class="container-content py-10 md:py-12">
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
       {stats.map((s) => (
-        <a href={s.href} class="block no-underline group text-bone">
+        <a
+          href={s.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="block no-underline group text-bone"
+        >
           <div class="flex items-baseline gap-2 mb-1">
             <span class="font-heading font-extrabold text-bone text-sm uppercase tracking-widest">{s.letter}</span>
             <span class="text-bone/70 text-xs uppercase tracking-wider">{s.label}</span>
@@ -58,7 +63,7 @@ const stats = [
             {s.value}
           </div>
           <div class="text-bone text-sm font-medium">{s.caption}</div>
-          <div class="text-bone/60 text-xs mt-1">{s.source}</div>
+          <div class="text-bone/60 text-xs mt-1">{s.source} ↗</div>
         </a>
       ))}
     </div>
