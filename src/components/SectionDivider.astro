@@ -1,24 +1,42 @@
 ---
 /**
- * Subtle brick-pattern divider between homepage modules.
- * Repeating row of 5 small "bricks" centered on the page in brick color at low opacity.
+ * Subtle running-bond brick pattern divider between homepage modules.
+ * 3 offset rows of bricks at low opacity — reads as texture, not ornament.
  */
 ---
 
-<div class="bg-bone py-3" aria-hidden="true">
+<div class="bg-bone py-5" aria-hidden="true">
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 200 16"
-    width="200"
-    height="16"
+    viewBox="0 0 240 42"
+    width="240"
+    height="42"
     class="mx-auto block"
   >
-    <g fill="#972E28" opacity="0.45">
-      <rect x="0"   y="2" width="32" height="12" rx="2"/>
-      <rect x="38"  y="2" width="32" height="12" rx="2"/>
-      <rect x="76"  y="2" width="48" height="12" rx="2"/>
-      <rect x="130" y="2" width="32" height="12" rx="2"/>
-      <rect x="168" y="2" width="32" height="12" rx="2"/>
+    <g fill="#972E28" opacity="0.55">
+      <!-- Row 1 -->
+      <rect x="0"   y="0"  width="34" height="10" rx="2"/>
+      <rect x="38"  y="0"  width="48" height="10" rx="2"/>
+      <rect x="90"  y="0"  width="34" height="10" rx="2"/>
+      <rect x="128" y="0"  width="48" height="10" rx="2"/>
+      <rect x="180" y="0"  width="34" height="10" rx="2"/>
+      <rect x="218" y="0"  width="22" height="10" rx="2"/>
+
+      <!-- Row 2 (staggered) -->
+      <rect x="-12" y="14" width="34" height="10" rx="2"/>
+      <rect x="26"  y="14" width="34" height="10" rx="2"/>
+      <rect x="64"  y="14" width="48" height="10" rx="2"/>
+      <rect x="116" y="14" width="34" height="10" rx="2"/>
+      <rect x="154" y="14" width="48" height="10" rx="2"/>
+      <rect x="206" y="14" width="34" height="10" rx="2"/>
+
+      <!-- Row 3 -->
+      <rect x="0"   y="28" width="48" height="10" rx="2"/>
+      <rect x="52"  y="28" width="34" height="10" rx="2"/>
+      <rect x="90"  y="28" width="34" height="10" rx="2"/>
+      <rect x="128" y="28" width="48" height="10" rx="2"/>
+      <rect x="180" y="28" width="34" height="10" rx="2"/>
+      <rect x="218" y="28" width="22" height="10" rx="2"/>
     </g>
   </svg>
 </div>

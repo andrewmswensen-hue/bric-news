@@ -1,42 +1,64 @@
 ---
 /**
- * Columbus-by-the-numbers strip. Three big stats above-the-fold-ish on the homepage.
- * Numbers update by editing this file (or wire to a content collection later).
- * Source items live in src/content/items/ — keep these aligned with the most recent
- * market_data items so the strip and feed stay consistent.
+ * Columbus-by-the-numbers strip — one stat per letter of BRIC.
+ * Values are placeholders; swap to live data by wiring to a small content
+ * collection later or by editing this file when new market-data items land.
+ *
+ *   B — Buy:    median SFR sale price (Columbus REALTORS, monthly)
+ *   R — Rent:   median asking rent, all rental property types (Realtor.com)
+ *   I — Invest: home price index, year-over-year (FHFA HPI, quarterly)
+ *   C — Columbus: overall rental vacancy rate (U.S. Census Housing Vacancy Survey)
  */
 const stats = [
   {
-    value: '$1,287',
-    label: 'Median rent (Apr 2026)',
-    sub: 'Apartment List, Columbus MSA',
+    letter: 'B',
+    label: 'Buy',
+    value: '$342K',
+    caption: 'Median home sale price',
+    source: 'Columbus REALTORS',
     href: '/news',
   },
   {
-    value: '7.1%',
-    label: 'Multifamily vacancy',
-    sub: 'CoStar, Columbus MSA',
+    letter: 'R',
+    label: 'Rent',
+    value: '$1,545',
+    caption: 'Median asking rent',
+    source: 'Realtor.com, all rentals',
     href: '/news',
   },
   {
+    letter: 'I',
+    label: 'Invest',
     value: '+3.8%',
-    label: 'Home price index, YoY',
-    sub: 'FHFA, Q1 2026',
+    caption: 'Home price, year over year',
+    source: 'FHFA HPI',
+    href: '/news',
+  },
+  {
+    letter: 'C',
+    label: 'Columbus',
+    value: '6.8%',
+    caption: 'Rental vacancy rate',
+    source: 'U.S. Census HVS',
     href: '/news',
   },
 ];
 ---
 
-<section class="bg-bone-2 border-y border-rule">
-  <div class="container-content py-8 md:py-10">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 md:gap-10 text-center sm:text-left">
+<section class="bg-bone-2">
+  <div class="container-content py-10 md:py-12">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
       {stats.map((s) => (
         <a href={s.href} class="block no-underline group">
-          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl lg:text-5xl tracking-tight leading-none mb-2 group-hover:opacity-90">
+          <div class="flex items-baseline gap-2 mb-1">
+            <span class="font-heading font-extrabold text-brick text-sm uppercase tracking-widest">{s.letter}</span>
+            <span class="text-slate text-xs uppercase tracking-wider">{s.label}</span>
+          </div>
+          <div class="font-heading font-extrabold text-charcoal text-3xl md:text-4xl tracking-tight leading-none mb-2 group-hover:text-brick transition-colors">
             {s.value}
           </div>
-          <div class="font-heading font-bold text-charcoal text-sm uppercase tracking-wider">{s.label}</div>
-          <div class="text-slate text-xs mt-1">{s.sub}</div>
+          <div class="text-charcoal text-sm font-medium">{s.caption}</div>
+          <div class="text-slate text-xs mt-1">{s.source}</div>
         </a>
       ))}
     </div>

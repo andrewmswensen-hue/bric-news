@@ -1,13 +1,56 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import OhioIcon from '../components/OhioIcon.astro';
 ---
 
 <BaseLayout title="About – BRIC.News" description="Editorial mission, correction policy, and takedown policy for BRIC.News.">
+  <!-- Hero band with Ohio icon as visual anchor -->
+  <section class="bg-bone-2 border-b border-rule">
+    <div class="container-content py-14 md:py-20">
+      <div class="grid md:grid-cols-3 gap-10 items-center">
+        <div class="md:col-span-2">
+          <p class="font-heading font-bold text-brick text-sm uppercase tracking-widest mb-3">About BRIC.News</p>
+          <h1 class="font-heading font-extrabold text-3xl md:text-5xl text-charcoal leading-tight mb-4">
+            A Columbus investor publication, nothing more.
+          </h1>
+          <p class="text-lg text-slate leading-relaxed max-w-prose">
+            News, policy, a working business directory, and the resources Columbus investors actually use — reported in a neutral voice, free to read forever.
+          </p>
+        </div>
+        <div class="flex justify-center md:justify-end">
+          <OhioIcon variant="solid" size="xl" label="Central Ohio" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Coverage stats strip -->
+  <section class="bg-bone border-b border-rule">
+    <div class="container-content py-8">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 text-center md:text-left">
+        <div>
+          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">13</div>
+          <div class="text-xs text-slate uppercase tracking-wider">Columbus-metro municipalities covered</div>
+        </div>
+        <div>
+          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">3</div>
+          <div class="text-xs text-slate uppercase tracking-wider">Counties (Franklin · Delaware · Licking)</div>
+        </div>
+        <div>
+          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">10</div>
+          <div class="text-xs text-slate uppercase tracking-wider">Business directory categories</div>
+        </div>
+        <div>
+          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">$0</div>
+          <div class="text-xs text-slate uppercase tracking-wider">Sponsored news coverage, ever</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="module-band bg-bone">
     <div class="container-content max-w-prose">
-      <h1 class="font-heading font-extrabold text-4xl md:text-5xl text-charcoal mb-6">About BRIC.News</h1>
-
-      <h2 class="font-heading font-bold text-brick text-xl mt-10 mb-3">Our mission</h2>
+      <h2 class="font-heading font-bold text-brick text-xl mt-4 mb-3">Our mission</h2>
       <p class="mb-4">
         BRIC.News exists to help Columbus-metro real estate investors and landlords get work done and stay informed. We track policy changes across Central Ohio municipalities, surface local market news, maintain a curated business directory Columbus investors use, and compile the resources you'd otherwise have to hunt down yourself.
       </p>
