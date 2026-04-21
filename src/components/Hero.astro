@@ -2,9 +2,11 @@
 import { getCollection } from 'astro:content';
 import NewsletterCTA from './NewsletterCTA.astro';
 import HeroStoryCard from './HeroStoryCard.astro';
+import HeroGuideCard from './HeroGuideCard.astro';
 
 const all = await getCollection('items');
 
+// Lead story: top policy item (featured first, then relevance, then date).
 const policyPick = all
   .filter((i) => i.data.content_type === 'policy')
   .sort((a, b) => {
@@ -14,19 +16,27 @@ const policyPick = all
     return b.data.published_at.getTime() - a.data.published_at.getTime();
   })[0];
 
+// Small slot 1: top news item (featured first, then date).
 const newsPick = all
   .filter((i) => i.data.content_type !== 'policy')
   .sort((a, b) => {
     if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
     return b.data.published_at.getTime() - a.data.published_at.getTime();
   })[0];
+
+// Small slot 2: featured guide.
+const guides = await getCollection('guides');
+const guidePick = guides.sort((a, b) => {
+  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+  return b.data.published_at.getTime() - a.data.published_at.getTime();
+})[0];
 ---
 
 <section class="bg-bone">
   <div class="container-content pt-14 md:pt-20 pb-14 md:pb-16">
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-14 items-center">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-14 items-start">
       <!-- Left: branding + subscribe -->
-      <div class="md:col-span-2 text-center md:text-left">
+      <div class="md:col-span-2 text-center md:text-left md:sticky md:top-8">
         <h1 class="sr-only">BRIC.News – Buy. Rent. Invest. Columbus.</h1>
         <img
           src="/logos/bric-logo-color-tagline.svg"
@@ -41,10 +51,20 @@ const newsPick = all
         </div>
       </div>
 
-      <!-- Right: top policy + top news stacked -->
-      <div class="md:col-span-3 grid grid-cols-1 gap-5">
-        {policyPick && <HeroStoryCard item={policyPick} variant="policy" />}
-        {newsPick && <HeroStoryCard item={newsPick} variant="news" />}
+      <!-- Right: Top Stories asymmetric — 1 big policy + 2 small (news, guide) -->
+      <div class="md:col-span-3">
+        <div class="mb-4">
+          <h2 class="font-heading font-bold text-brick text-sm uppercase tracking-widest">Top Stories</h2>
+          <p class="text-xs text-slate mt-1">What Columbus investors need to see this week.</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-5">
+          {policyPick && <HeroStoryCard item={policyPick} variant="policy" size="big" />}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            {newsPick && <HeroStoryCard item={newsPick} variant="news" size="small" />}
+            {guidePick && <HeroGuideCard guide={guidePick} />}
+          </div>
+        </div>
       </div>
     </div>
   </div>

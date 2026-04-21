@@ -4,17 +4,22 @@ import type { CollectionEntry } from 'astro:content';
 interface Props {
   item: CollectionEntry<'items'>;
   variant?: 'policy' | 'news';
+  size?: 'small' | 'big';
 }
 
-const { item, variant } = Astro.props;
+const { item, variant, size = 'small' } = Astro.props;
 const d = item.data;
 const kind = variant ?? (d.content_type === 'policy' ? 'policy' : 'news');
+const isBig = size === 'big';
 
 const dateStr = d.published_at.toLocaleDateString('en-US', {
   month: 'short', day: 'numeric',
 });
 
-const summary = d.summary.length > 160 ? d.summary.slice(0, 157).trimEnd() + '…' : d.summary;
+const summary = isBig
+  ? (d.summary.length > 260 ? d.summary.slice(0, 257).trimEnd() + '…' : d.summary)
+  : (d.summary.length > 140 ? d.summary.slice(0, 137).trimEnd() + '…' : d.summary);
+
 const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
 
 const isPolicy = kind === 'policy';
@@ -22,24 +27,30 @@ const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
 const linkTitle = !isPolicy && isRealSource;
 ---
 
-<article class="bg-bone-2 border border-rule p-5 flex flex-col h-full">
-  <div class="flex items-center gap-2 mb-3">
+<article class={`bg-bone-2 border border-rule flex flex-col h-full ${isBig ? 'p-6 md:p-7' : 'p-4'}`}>
+  <div class={`flex items-center gap-2 ${isBig ? 'mb-4' : 'mb-2'}`}>
     <span class={isPolicy ? 'badge-policy' : 'badge-news'}>{isPolicy ? 'Policy' : 'News'}</span>
-    <span class="text-xs text-slate">·</span>
-    <img
-      src={faviconSrc}
-      alt=""
-      width="12"
-      height="12"
-      class="rounded-sm flex-shrink-0"
-      loading="lazy"
-      onerror="this.style.display='none'"
-    />
-    <span class="text-xs text-slate uppercase tracking-wider">{d.source_domain}</span>
-    <span class="text-xs text-slate">· {dateStr}</span>
+    {isBig && (
+      <>
+        <span class="text-xs text-slate">·</span>
+        <img
+          src={faviconSrc}
+          alt=""
+          width="12"
+          height="12"
+          class="rounded-sm flex-shrink-0"
+          loading="lazy"
+          onerror="this.style.display='none'"
+        />
+        <span class="text-xs text-slate uppercase tracking-wider">{d.source_domain}</span>
+      </>
+    )}
+    <span class={`text-xs text-slate ${isBig ? '' : 'ml-auto'}`}>
+      {isBig ? '· ' : ''}{dateStr}
+    </span>
   </div>
 
-  <h3 class="font-heading font-bold text-lg leading-snug mb-2">
+  <h3 class={`font-heading font-bold leading-snug mb-2 ${isBig ? 'text-xl md:text-2xl' : 'text-base'}`}>
     {linkTitle ? (
       <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
         {d.title}
@@ -49,9 +60,9 @@ const linkTitle = !isPolicy && isRealSource;
     )}
   </h3>
 
-  <p class="text-sm text-charcoal leading-relaxed mb-3">{summary}</p>
+  <p class={`text-charcoal leading-relaxed mb-3 ${isBig ? 'text-sm md:text-base' : 'text-xs'}`}>{summary}</p>
 
-  <div class="mt-auto pt-2 flex items-center justify-between gap-3 text-xs">
+  <div class={`mt-auto pt-2 flex items-center justify-between gap-3 text-xs`}>
     <a
       href={isPolicy ? '/policy' : '/news'}
       class="text-slate hover:text-brick no-underline"

@@ -1,0 +1,42 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  guide: CollectionEntry<'guides'>;
+}
+
+const { guide } = Astro.props;
+const g = guide.data;
+
+const CATEGORY_LABEL: Record<string, string> = {
+  'getting-started':     'Getting Started',
+  'buying':              'Buying',
+  'operating':           'Operating',
+  'property-management': 'Property Management',
+  'tax':                 'Tax',
+  'legal':               'Legal',
+  'market-analysis':     'Market Analysis',
+};
+
+const desc = g.description.length > 120 ? g.description.slice(0, 117).trimEnd() + '…' : g.description;
+---
+
+<article class="bg-bone-2 border border-rule flex flex-col h-full p-4">
+  <div class="flex items-center gap-2 mb-2">
+    <span class="chip uppercase">Guide</span>
+    <span class="text-xs text-slate ml-auto">{CATEGORY_LABEL[g.category] ?? g.category}</span>
+  </div>
+
+  <h3 class="font-heading font-bold text-base leading-snug mb-2">
+    <a href={`/guides/${guide.slug}`} class="text-charcoal hover:text-brick no-underline">
+      {g.title}
+    </a>
+  </h3>
+
+  <p class="text-xs text-charcoal leading-relaxed mb-3">{desc}</p>
+
+  <div class="mt-auto pt-2 flex items-center justify-between gap-3 text-xs">
+    <a href="/guides" class="text-slate hover:text-brick no-underline">More guides →</a>
+    <a href={`/guides/${guide.slug}`} class="text-brick font-medium no-underline hover:underline">Read →</a>
+  </div>
+</article>
