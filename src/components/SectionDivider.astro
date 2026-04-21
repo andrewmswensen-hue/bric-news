@@ -1,45 +1,24 @@
 ---
 /**
- * Brick-stack divider between homepage modules.
- * Left-anchored, rows lengthen as they descend (each row pushes further
- * right than the one above). Mix of big (40px) and small (20px) bricks
- * within each row for organic variation. Uniform strong brick color
- * throughout (big bricks 0.55, small bricks 0.48).
- *
- * Pattern sketch from brief:
- *   -—-       row 1: small big small
- *   -—--      row 2: small big small small
- *   —-—--     row 3: big small big small small
+ * Simple brick divider between homepage modules.
+ * One row of solid bricks, centered on the page, uniform brick color.
  */
 ---
 
-<div class="bg-bone py-4" aria-hidden="true">
-  <div class="container-content">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 160 38"
-      width="160"
-      height="38"
-      class="block"
-      fill="#972E28"
-    >
-      <!-- Row 1 (top, shortest): small big small -->
-      <rect x="0"   y="0"  width="20" height="10" rx="2" opacity="0.48"/>
-      <rect x="24"  y="0"  width="40" height="10" rx="2" opacity="0.55"/>
-      <rect x="68"  y="0"  width="20" height="10" rx="2" opacity="0.48"/>
-
-      <!-- Row 2 (middle): small big small small -->
-      <rect x="0"   y="14" width="20" height="10" rx="2" opacity="0.48"/>
-      <rect x="24"  y="14" width="40" height="10" rx="2" opacity="0.55"/>
-      <rect x="68"  y="14" width="20" height="10" rx="2" opacity="0.48"/>
-      <rect x="92"  y="14" width="20" height="10" rx="2" opacity="0.48"/>
-
-      <!-- Row 3 (bottom, longest): big small big small small -->
-      <rect x="0"   y="28" width="40" height="10" rx="2" opacity="0.55"/>
-      <rect x="44"  y="28" width="20" height="10" rx="2" opacity="0.48"/>
-      <rect x="68"  y="28" width="40" height="10" rx="2" opacity="0.55"/>
-      <rect x="112" y="28" width="20" height="10" rx="2" opacity="0.48"/>
-      <rect x="136" y="28" width="20" height="10" rx="2" opacity="0.48"/>
-    </svg>
-  </div>
+<div class="bg-bone py-3" aria-hidden="true">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 200 16"
+    width="200"
+    height="16"
+    class="mx-auto block"
+  >
+    <g fill="#972E28" opacity="0.45">
+      <rect x="0"   y="2" width="32" height="12" rx="2"/>
+      <rect x="38"  y="2" width="32" height="12" rx="2"/>
+      <rect x="76"  y="2" width="48" height="12" rx="2"/>
+      <rect x="130" y="2" width="32" height="12" rx="2"/>
+      <rect x="168" y="2" width="32" height="12" rx="2"/>
+    </g>
+  </svg>
 </div>
