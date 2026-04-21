@@ -1,9 +1,9 @@
 ---
 /**
  * Subtle running-bond brick pattern divider between homepage modules.
- * Each row uses two varying opacities across the 6 bricks so the pattern
- * reads as real texture rather than a uniform tint. Middle row strongest,
- * top and bottom rows fade out.
+ * Each row has two slightly-different opacities so the pattern reads as
+ * real brick variation rather than a uniform band, but the variation is
+ * gentle enough to register as texture rather than pattern.
  */
 ---
 
@@ -16,28 +16,28 @@
     class="mx-auto block"
     fill="#972E28"
   >
-    <!-- Row 1 (top, faded): opacities alternate 0.22 / 0.14 -->
+    <!-- Row 1 (top, faded): 0.22 / 0.18 -->
     <rect x="0"   y="0"  width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="38"  y="0"  width="48" height="10" rx="2" opacity="0.14"/>
+    <rect x="38"  y="0"  width="48" height="10" rx="2" opacity="0.18"/>
     <rect x="90"  y="0"  width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="128" y="0"  width="48" height="10" rx="2" opacity="0.14"/>
+    <rect x="128" y="0"  width="48" height="10" rx="2" opacity="0.18"/>
     <rect x="180" y="0"  width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="218" y="0"  width="22" height="10" rx="2" opacity="0.14"/>
+    <rect x="218" y="0"  width="22" height="10" rx="2" opacity="0.18"/>
 
-    <!-- Row 2 (middle, strongest): opacities alternate 0.55 / 0.40 -->
+    <!-- Row 2 (middle, strongest): 0.55 / 0.48 -->
     <rect x="-12" y="14" width="34" height="10" rx="2" opacity="0.55"/>
-    <rect x="26"  y="14" width="34" height="10" rx="2" opacity="0.40"/>
+    <rect x="26"  y="14" width="34" height="10" rx="2" opacity="0.48"/>
     <rect x="64"  y="14" width="48" height="10" rx="2" opacity="0.55"/>
-    <rect x="116" y="14" width="34" height="10" rx="2" opacity="0.40"/>
+    <rect x="116" y="14" width="34" height="10" rx="2" opacity="0.48"/>
     <rect x="154" y="14" width="48" height="10" rx="2" opacity="0.55"/>
-    <rect x="206" y="14" width="34" height="10" rx="2" opacity="0.40"/>
+    <rect x="206" y="14" width="34" height="10" rx="2" opacity="0.48"/>
 
-    <!-- Row 3 (bottom, faded): opacities alternate 0.22 / 0.14 -->
-    <rect x="0"   y="28" width="48" height="10" rx="2" opacity="0.14"/>
+    <!-- Row 3 (bottom, faded): 0.22 / 0.18 -->
+    <rect x="0"   y="28" width="48" height="10" rx="2" opacity="0.18"/>
     <rect x="52"  y="28" width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="90"  y="28" width="34" height="10" rx="2" opacity="0.14"/>
+    <rect x="90"  y="28" width="34" height="10" rx="2" opacity="0.18"/>
     <rect x="128" y="28" width="48" height="10" rx="2" opacity="0.22"/>
-    <rect x="180" y="28" width="34" height="10" rx="2" opacity="0.14"/>
+    <rect x="180" y="28" width="34" height="10" rx="2" opacity="0.18"/>
     <rect x="218" y="28" width="22" height="10" rx="2" opacity="0.22"/>
   </svg>
 </div>

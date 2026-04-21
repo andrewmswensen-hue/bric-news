@@ -18,6 +18,8 @@ const related = all
 
 const categoryLabel = v.category.replace(/-/g, ' ');
 const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+const hasRealWebsite = !!v.website && !v.website.includes('example.com');
+const hasRealEmail = !!v.email && !v.email.includes('example.com');
 ---
 
 <BaseLayout title={`${v.name} – BRIC.News`} description={v.description}>
@@ -87,13 +89,16 @@ const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', d
             )}
             <h3 class="font-heading font-bold text-charcoal text-base mb-4">Contact</h3>
             <div class="space-y-3 text-sm">
-              {v.website && (
+              {hasRealWebsite && (
                 <a href={v.website} target="_blank" rel="noopener noreferrer" class="btn-primary w-full text-center">Visit website</a>
+              )}
+              {!hasRealWebsite && v.website && (
+                <p class="text-xs italic text-slate">Website pending confirmation</p>
               )}
               {v.phone && (
                 <p><span class="text-slate">Phone:</span> <a href={`tel:${v.phone}`}>{v.phone}</a></p>
               )}
-              {v.email && (
+              {hasRealEmail && (
                 <p><span class="text-slate">Email:</span> <a href={`mailto:${v.email}`}>{v.email}</a></p>
               )}
               {v.address && (

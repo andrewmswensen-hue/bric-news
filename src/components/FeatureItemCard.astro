@@ -18,6 +18,10 @@ const firstSentence = d.summary.split(/(?<=[.!?])\s+/)[0] || d.summary;
 const pullQuote = firstSentence.length > 200 ? firstSentence.slice(0, 197).trimEnd() + '…' : firstSentence;
 
 const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
+
+const isPolicy = d.content_type === 'policy';
+const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
+const linkTitle = !isPolicy && isRealSource;
 ---
 
 <article class="relative bg-bone-2 border border-rule overflow-hidden grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-6">
@@ -42,19 +46,39 @@ const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}
     </div>
 
     <h2 class="font-heading font-extrabold text-charcoal text-2xl md:text-3xl leading-tight mb-4">
-      <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
-        {d.title}
-      </a>
+      {linkTitle ? (
+        <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
+          {d.title}
+        </a>
+      ) : (
+        <span>{d.title}</span>
+      )}
     </h2>
 
     <p class="text-base text-charcoal leading-relaxed mb-5">{d.summary}</p>
 
     {d.why_it_matters && (
-      <p class="text-base text-slate italic border-l-4 border-brick pl-4 mb-2">
+      <p class="text-base text-slate italic border-l-4 border-brick pl-4 mb-5">
         <span class="not-italic font-semibold text-brick uppercase tracking-wider text-xs mr-1">Why it matters:</span>
         {d.why_it_matters}
       </p>
     )}
+
+    <div class="mt-auto flex flex-wrap items-center gap-3">
+      {isRealSource && isPolicy && (
+        <a
+          href={d.source_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="btn-secondary text-sm"
+        >
+          View source document →
+        </a>
+      )}
+      {!isRealSource && (
+        <span class="text-xs italic text-slate">Source pending — reach out if you have the link</span>
+      )}
+    </div>
   </div>
 
   <div class="md:col-span-1 p-6 md:p-8 bg-bone border-t md:border-t-0 md:border-l border-rule flex flex-col justify-between">

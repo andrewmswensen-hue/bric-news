@@ -13,6 +13,7 @@ const slug = vendor.slug;
 const categoryLabel = v.category.replace(/-/g, ' ');
 const cityLabel = v.city_label || (v.address?.split(',')[0]?.trim() ?? '');
 const initial = (v.name[0] || 'B').toUpperCase();
+const hasRealWebsite = !!v.website && !v.website.includes('example.com');
 ---
 
 {compact ? (
@@ -67,7 +68,7 @@ const initial = (v.name[0] || 'B').toUpperCase();
             <span>{cityLabel}</span>
           </p>
         )}
-        {v.website ? (
+        {hasRealWebsite ? (
           <a href={v.website} target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-brick no-underline hover:underline">Visit website →</a>
         ) : (
           <a href={`/business-directory/${slug}`} class="text-sm font-medium text-brick no-underline hover:underline">View details →</a>

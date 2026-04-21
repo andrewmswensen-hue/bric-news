@@ -15,6 +15,13 @@ const dateStr = d.published_at.toLocaleDateString('en-US', {
 
 const truncated = d.summary.length > 240 ? d.summary.slice(0, 237).trimEnd() + '…' : d.summary;
 const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
+
+const isPolicy = d.content_type === 'policy';
+const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
+// Policy items: headline is editorial voice, never a link. Source lives in its
+// own button below. News items: if we have a real URL, the title IS the article
+// title and should link to it.
+const linkTitle = !isPolicy && isRealSource;
 ---
 
 <article class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col">
@@ -38,9 +45,13 @@ const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}
   </div>
 
   <h3 class="font-heading font-bold text-lg leading-snug mb-2">
-    <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
-      {d.title}
-    </a>
+    {linkTitle ? (
+      <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
+        {d.title}
+      </a>
+    ) : (
+      <span class="text-charcoal">{d.title}</span>
+    )}
   </h3>
 
   <p class="text-sm text-charcoal leading-relaxed mb-3">{truncated}</p>
@@ -52,8 +63,23 @@ const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}
     </p>
   )}
 
-  <div class="mt-auto flex flex-wrap gap-1.5 pt-2">
-    {d.topics.slice(0, 3).map(t => <span class="chip">{t}</span>)}
-    {d.municipalities.slice(0, 2).map(m => <span class="chip">{m.replace('-', ' ')}</span>)}
+  <div class="mt-auto pt-2 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap gap-1.5">
+      {d.topics.slice(0, 3).map(t => <span class="chip">{t}</span>)}
+      {d.municipalities.slice(0, 2).map(m => <span class="chip">{m.replace(/-/g, ' ')}</span>)}
+    </div>
+    {isRealSource && isPolicy && (
+      <a
+        href={d.source_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-xs font-medium text-brick no-underline hover:underline whitespace-nowrap"
+      >
+        View source →
+      </a>
+    )}
+    {!isRealSource && (
+      <span class="text-xs italic text-slate whitespace-nowrap">Source pending</span>
+    )}
   </div>
 </article>
