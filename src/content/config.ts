@@ -53,6 +53,16 @@ export const RESOURCE_CATEGORIES = [
   'vendors',
 ] as const;
 
+export const GUIDE_CATEGORIES = [
+  'getting-started',
+  'buying',
+  'operating',
+  'property-management',
+  'tax',
+  'legal',
+  'market-analysis',
+] as const;
+
 const items = defineCollection({
   type: 'content',
   schema: z.object({
@@ -128,4 +138,21 @@ const resources = defineCollection({
   }),
 });
 
-export const collections = { items, vendors, cities, resources };
+const guides = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    published_at: z.coerce.date(),
+    updated_at: z.coerce.date().optional(),
+    author: z.string().default('BRIC Editorial'),
+    category: z.enum(GUIDE_CATEGORIES),
+    tags: z.array(z.string()).default([]),
+    featured: z.boolean().default(false),
+    reading_time_minutes: z.number().optional(),
+    hero_treatment: z.enum(['pattern', 'photo', 'chart']).default('pattern'),
+    hero_image: z.string().optional(),
+  }),
+});
+
+export const collections = { items, vendors, cities, resources, guides };

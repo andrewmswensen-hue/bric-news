@@ -1,0 +1,112 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GuideHeroPattern from '../../components/GuideHeroPattern.astro';
+import { getCollection } from 'astro:content';
+import { GUIDE_CATEGORIES } from '../../content/config';
+
+const all = await getCollection('guides');
+const guides = all.sort((a, b) => {
+  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+  return b.data.published_at.getTime() - a.data.published_at.getTime();
+});
+
+const CATEGORY_LABEL: Record<string, string> = {
+  'getting-started':     'Getting Started',
+  'buying':              'Buying',
+  'operating':           'Operating',
+  'property-management': 'Property Management',
+  'tax':                 'Tax',
+  'legal':               'Legal',
+  'market-analysis':     'Market Analysis',
+};
+
+const activeCategories = GUIDE_CATEGORIES.filter((c) =>
+  guides.some((g) => g.data.category === c),
+);
+---
+
+<BaseLayout title="Guides – BRIC.News" description="Practical guides for Columbus-metro real estate investors and landlords. Tax, legal, buying, operating, market analysis.">
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <div class="text-center mb-10 md:mb-14">
+        <h1 class="font-heading font-extrabold text-4xl md:text-5xl tracking-tight text-charcoal">Guides</h1>
+        <div class="mx-auto mt-4 h-[3px] w-20 bg-brick"></div>
+        <p class="mt-6 mx-auto max-w-prose text-slate text-base md:text-lg">
+          Evergreen how-tos for Columbus-metro real estate investors and landlords. Tax, legal, buying, operating, and market analysis, in the same neutral voice as the rest of BRIC.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-2 md:gap-3 mb-10" data-guide-pills>
+        <button type="button" class="filter-pill filter-pill-active" data-filter-category="all" aria-pressed="true">All</button>
+        {activeCategories.map((c) => (
+          <button type="button" class="filter-pill" data-filter-category={c} aria-pressed="false">
+            {CATEGORY_LABEL[c] || c.replace(/-/g, ' ')}
+          </button>
+        ))}
+      </div>
+
+      <div id="guide-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {guides.map((g) => (
+          <a
+            href={`/guides/${g.slug}`}
+            class="guide-item group bg-bone-2 border border-rule flex flex-col no-underline overflow-hidden hover:border-brick transition-colors"
+            data-category={g.data.category}
+          >
+            <GuideHeroPattern seed={g.slug} size="card" />
+            <div class="p-5 flex flex-col flex-1">
+              <div class="mb-3 flex items-center justify-between gap-2 flex-wrap">
+                <span class="chip capitalize">{CATEGORY_LABEL[g.data.category]}</span>
+                {g.data.featured && <span class="ribbon-preferred">Featured</span>}
+              </div>
+              <h3 class="font-heading font-bold text-lg leading-snug text-charcoal group-hover:text-brick mb-2">{g.data.title}</h3>
+              <p class="text-sm text-slate leading-relaxed mb-4 line-clamp-3">{g.data.description}</p>
+              <div class="mt-auto text-xs text-slate flex items-center gap-2">
+                <span>{g.data.published_at.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                {g.data.reading_time_minutes && <span>· {g.data.reading_time_minutes} min read</span>}
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      {guides.length === 0 && (
+        <p class="text-center text-slate italic mt-12">No guides published yet.</p>
+      )}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .filter-pill {
+    @apply px-5 py-2 rounded-full border border-rule bg-bone-2 text-charcoal font-medium text-sm uppercase tracking-wider cursor-pointer transition-colors;
+  }
+  .filter-pill:hover {
+    @apply border-brick text-brick;
+  }
+  .filter-pill-active {
+    @apply bg-brick text-bone border-brick;
+  }
+  .filter-pill-active:hover {
+    @apply text-bone;
+  }
+</style>
+
+<script>
+  const pills = document.querySelectorAll<HTMLButtonElement>('[data-guide-pills] [data-filter-category]');
+  const items = document.querySelectorAll<HTMLElement>('.guide-item');
+
+  pills.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const cat = btn.dataset.filterCategory!;
+      pills.forEach((p) => {
+        p.classList.remove('filter-pill-active');
+        p.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('filter-pill-active');
+      btn.setAttribute('aria-pressed', 'true');
+      items.forEach((el) => {
+        el.style.display = cat === 'all' || el.dataset.category === cat ? '' : 'none';
+      });
+    });
+  });
+</script>

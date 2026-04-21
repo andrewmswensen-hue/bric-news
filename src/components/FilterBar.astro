@@ -42,14 +42,18 @@ const { groups, target } = Astro.props;
       const attr = group.dataset.filterGroup!;
       state[attr] = 'all';
 
+      // Highlight the default "All" chip on load
+      const allBtn = group.querySelector<HTMLButtonElement>('button[data-filter-value="all"]');
+      allBtn?.classList.add('filter-chip-active');
+
       group.querySelectorAll<HTMLButtonElement>('button[data-filter-value]').forEach((btn) => {
         btn.addEventListener('click', () => {
           group.querySelectorAll('button').forEach(b => {
             b.setAttribute('aria-pressed', 'false');
-            b.classList.remove('bg-brick', 'text-bone');
+            b.classList.remove('filter-chip-active');
           });
           btn.setAttribute('aria-pressed', 'true');
-          btn.classList.add('bg-brick', 'text-bone');
+          btn.classList.add('filter-chip-active');
           state[attr] = btn.dataset.filterValue!;
           applyFilters();
         });

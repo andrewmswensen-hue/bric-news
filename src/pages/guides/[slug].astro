@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import GuideHeroPattern from '../../components/GuideHeroPattern.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides');
+  return guides.map((g) => ({ params: { slug: g.slug }, props: { guide: g } }));
+}
+
+const { guide } = Astro.props;
+const { Content } = await guide.render();
+const g = guide.data;
+
+const all = await getCollection('guides');
+const related = all
+  .filter((x) => x.slug !== guide.slug && x.data.category === g.category)
+  .slice(0, 3);
+
+const CATEGORY_LABEL: Record<string, string> = {
+  'getting-started':     'Getting Started',
+  'buying':              'Buying',
+  'operating':           'Operating',
+  'property-management': 'Property Management',
+  'tax':                 'Tax',
+  'legal':               'Legal',
+  'market-analysis':     'Market Analysis',
+};
+
+const published = g.published_at.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+const updated = g.updated_at?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+---
+
+<BaseLayout title={`${g.title} – BRIC.News`} description={g.description}>
+  {g.hero_treatment === 'photo' && g.hero_image ? (
+    <div class="w-full aspect-[3/1] bg-bone-2 border-b border-rule overflow-hidden">
+      <img src={g.hero_image} alt="" class="w-full h-full object-cover grayscale contrast-110"/>
+    </div>
+  ) : (
+    <GuideHeroPattern seed={guide.slug} size="wide" />
+  )}
+
+  <article class="bg-bone module-band">
+    <div class="container-content max-w-prose">
+      <nav class="text-sm text-slate mb-6">
+        <a href="/guides" class="hover:text-brick no-underline">Guides</a>
+        <span class="mx-2">/</span>
+        <span class="capitalize">{CATEGORY_LABEL[g.category]}</span>
+      </nav>
+
+      <h1 class="font-heading font-extrabold text-3xl md:text-5xl text-charcoal leading-tight mb-4">{g.title}</h1>
+
+      <p class="text-lg text-slate leading-relaxed mb-6">{g.description}</p>
+
+      <div class="flex flex-wrap items-center gap-3 text-sm text-slate border-b border-rule pb-6 mb-8">
+        <span>By {g.author}</span>
+        <span aria-hidden="true">·</span>
+        <span>{published}</span>
+        {updated && <><span aria-hidden="true">·</span><span>Updated {updated}</span></>}
+        {g.reading_time_minutes && (
+          <><span aria-hidden="true">·</span><span>{g.reading_time_minutes} min read</span></>
+        )}
+      </div>
+
+      <div class="guide-body">
+        <Content />
+      </div>
+
+      {g.tags.length > 0 && (
+        <div class="mt-10 pt-6 border-t border-rule flex flex-wrap gap-1.5">
+          {g.tags.map((t) => <span class="chip">{t}</span>)}
+        </div>
+      )}
+    </div>
+
+    {related.length > 0 && (
+      <div class="container-content mt-16">
+        <h2 class="font-heading font-bold text-charcoal text-xl mb-6">Related guides</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {related.map((rg) => (
+            <a href={`/guides/${rg.slug}`} class="bg-bone-2 border border-rule overflow-hidden no-underline hover:border-brick transition-colors">
+              <GuideHeroPattern seed={rg.slug} size="card"/>
+              <div class="p-5">
+                <h3 class="font-heading font-bold text-base text-charcoal mb-2">{rg.data.title}</h3>
+                <p class="text-sm text-slate line-clamp-2">{rg.data.description}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </article>
+</BaseLayout>
+
+<style is:global>
+  .guide-body h2 { @apply font-heading font-bold text-2xl text-charcoal mt-10 mb-3; }
+  .guide-body h3 { @apply font-heading font-bold text-xl text-charcoal mt-8 mb-2; }
+  .guide-body p  { @apply text-charcoal leading-relaxed mb-5; }
+  .guide-body ul, .guide-body ol { @apply list-disc pl-6 mb-5 space-y-1 text-charcoal; }
+  .guide-body ol { @apply list-decimal; }
+  .guide-body a  { @apply text-brick; }
+  .guide-body strong { @apply text-charcoal font-semibold; }
+  .guide-body blockquote {
+    @apply border-l-4 border-brick pl-4 italic text-slate my-6;
+  }
+</style>

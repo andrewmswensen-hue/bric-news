@@ -1,0 +1,53 @@
+---
+import { getCollection } from 'astro:content';
+import GuideHeroPattern from './GuideHeroPattern.astro';
+
+const all = await getCollection('guides');
+
+// Prefer a featured:true guide, else most recent.
+const sorted = all.sort((a, b) => {
+  if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+  return b.data.published_at.getTime() - a.data.published_at.getTime();
+});
+const pick = sorted[0];
+
+const CATEGORY_LABEL: Record<string, string> = {
+  'getting-started':     'Getting Started',
+  'buying':              'Buying',
+  'operating':           'Operating',
+  'property-management': 'Property Management',
+  'tax':                 'Tax',
+  'legal':               'Legal',
+  'market-analysis':     'Market Analysis',
+};
+---
+
+{pick && (
+  <section class="module-band bg-bone">
+    <div class="container-content">
+      <div class="mb-2">
+        <h2 class="module-heading">Featured Guide</h2>
+        <p class="module-sub">An evergreen how-to for Columbus investors and landlords.</p>
+      </div>
+
+      <a
+        href={`/guides/${pick.slug}`}
+        class="block bg-bone-2 border border-rule overflow-hidden no-underline hover:border-brick transition-colors grid grid-cols-1 md:grid-cols-5"
+      >
+        <div class="md:col-span-2">
+          <GuideHeroPattern seed={pick.slug} size="wide" />
+        </div>
+        <div class="md:col-span-3 p-6 md:p-8 flex flex-col justify-center">
+          <span class="chip capitalize mb-3 self-start">{CATEGORY_LABEL[pick.data.category]}</span>
+          <h3 class="font-heading font-bold text-xl md:text-2xl text-charcoal mb-3 leading-snug">{pick.data.title}</h3>
+          <p class="text-slate leading-relaxed mb-4">{pick.data.description}</p>
+          <span class="text-brick font-medium">Read the guide →</span>
+        </div>
+      </a>
+
+      <p class="mt-6 text-right">
+        <a href="/guides" class="link-arrow">Browse all guides →</a>
+      </p>
+    </div>
+  </section>
+)}

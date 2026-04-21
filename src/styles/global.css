@@ -78,6 +78,10 @@
     @apply inline-block text-xs uppercase tracking-wide bg-rule/60 text-charcoal px-2 py-0.5 rounded font-medium;
   }
 
+  .filter-chip-active {
+    @apply bg-brick text-bone border-brick;
+  }
+
   .btn-primary {
     @apply inline-flex items-center justify-center bg-brick text-bone font-medium px-5 py-2.5 rounded-sm hover:opacity-90 no-underline;
   }

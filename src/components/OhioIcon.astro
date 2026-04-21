@@ -1,0 +1,70 @@
+---
+interface Props {
+  /** Which treatment: 'neutral' (outline only), 'star' (central Ohio star), 'county' (highlights a single county). */
+  variant?: 'neutral' | 'star' | 'county';
+  /** For 'county' variant only: which county to highlight. */
+  county?: 'franklin' | 'delaware' | 'licking';
+  /** Render size. */
+  size?: 'sm' | 'md' | 'lg';
+  /** Optional title for accessibility. */
+  label?: string;
+  class?: string;
+}
+
+const { variant = 'star', county, size = 'md', label = 'Central Ohio', class: className = '' } = Astro.props;
+
+const sizeClass = {
+  sm: 'w-5 h-5',
+  md: 'w-12 h-12',
+  lg: 'w-20 h-20',
+}[size];
+
+// Approximated Ohio outline path (right-angle in the southeast from the Ohio River)
+// Viewbox: 100x110, Ohio's actual aspect is close to 0.9 tall
+const OHIO_PATH = "M20,8 L78,4 L82,20 L86,40 L88,58 L84,72 L75,82 L72,92 L64,98 L54,100 L42,96 L34,92 L24,86 L18,76 L14,60 L12,42 L14,22 Z";
+
+// Central Ohio star approximate location (Columbus ~ 50,52 in this viewBox)
+const STAR_CX = 50;
+const STAR_CY = 52;
+
+// Approximate bounding-box rectangles for the 3 covered counties
+const COUNTIES: Record<string, { d: string }> = {
+  franklin: { d: "M42,44 L58,44 L58,58 L42,58 Z" },
+  delaware: { d: "M42,32 L58,32 L58,44 L42,44 Z" },
+  licking:  { d: "M58,44 L74,44 L74,58 L58,58 Z" },
+};
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 100 110"
+  class={`${sizeClass} ${className}`}
+  role="img"
+  aria-label={label}
+>
+  <title>{label}</title>
+
+  <!-- Ohio outline (always rendered) -->
+  <path
+    d={OHIO_PATH}
+    fill={variant === 'neutral' ? 'transparent' : '#F7F3EE'}
+    stroke="#972E28"
+    stroke-width="2.5"
+    stroke-linejoin="round"
+  />
+
+  {variant === 'star' && (
+    <polygon
+      points={`${STAR_CX},${STAR_CY - 8} ${STAR_CX + 2.4},${STAR_CY - 2.5} ${STAR_CX + 8},${STAR_CY - 2.5} ${STAR_CX + 3.5},${STAR_CY + 1} ${STAR_CX + 5.5},${STAR_CY + 6.5} ${STAR_CX},${STAR_CY + 3} ${STAR_CX - 5.5},${STAR_CY + 6.5} ${STAR_CX - 3.5},${STAR_CY + 1} ${STAR_CX - 8},${STAR_CY - 2.5} ${STAR_CX - 2.4},${STAR_CY - 2.5}`}
+      fill="#972E28"
+    />
+  )}
+
+  {variant === 'county' && county && COUNTIES[county] && (
+    <path
+      d={COUNTIES[county].d}
+      fill="#972E28"
+      opacity="0.85"
+    />
+  )}
+</svg>

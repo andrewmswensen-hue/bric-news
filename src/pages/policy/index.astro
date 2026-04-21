@@ -2,6 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ItemCard from '../../components/ItemCard.astro';
 import FilterBar from '../../components/FilterBar.astro';
+import OhioIcon from '../../components/OhioIcon.astro';
 import { getCollection } from 'astro:content';
 import { MUNICIPALITIES } from '../../content/config';
 
@@ -18,8 +19,14 @@ const statusOptions = statusValues.map((s) => ({ value: s, label: s }));
 <BaseLayout title="Policy Watch – BRIC.News" description="Columbus-metro real estate policy updates, curated for investors and landlords.">
   <section class="module-band bg-bone">
     <div class="container-content">
-      <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal mb-2">Columbus-Metro Policy Watch</h1>
-      <p class="text-slate mb-8 max-w-prose">Policy, permits, and regulation changes across Columbus and the surrounding municipalities. Updated as items move.</p>
+      <div class="flex items-start gap-4 mb-2">
+        <OhioIcon variant="star" size="md" label="Central Ohio policy" class="mt-1 flex-shrink-0" />
+        <div>
+          <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal">Columbus-Metro Policy Watch</h1>
+          <p class="text-slate mt-2 max-w-prose">Policy, permits, and regulation changes across Columbus and the surrounding municipalities. Updated as items move.</p>
+        </div>
+      </div>
+      <div class="mb-8"></div>
 
       <FilterBar
         target="[data-policy-item]"
