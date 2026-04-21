@@ -1,43 +1,44 @@
 ---
 /**
- * Subtle running-bond brick pattern divider between homepage modules.
- * Each row has two slightly-different opacities so the pattern reads as
- * real brick variation rather than a uniform band, but the variation is
- * gentle enough to register as texture rather than pattern.
+ * Brick-stack divider between homepage modules.
+ * 4 rows of horizontal bricks, left-anchored to the content container,
+ * descending rightward (each row shorter than the one above it). Uniform
+ * strong brick color throughout — same 0.55 / 0.48 opacity alternation as
+ * the old middle row, no faded edges.
  */
 ---
 
-<div class="bg-bone py-3" aria-hidden="true">
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 240 42"
-    width="240"
-    height="42"
-    class="mx-auto block"
-    fill="#972E28"
-  >
-    <!-- Row 1 (top, faded): 0.22 / 0.18 -->
-    <rect x="0"   y="0"  width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="38"  y="0"  width="48" height="10" rx="2" opacity="0.18"/>
-    <rect x="90"  y="0"  width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="128" y="0"  width="48" height="10" rx="2" opacity="0.18"/>
-    <rect x="180" y="0"  width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="218" y="0"  width="22" height="10" rx="2" opacity="0.18"/>
+<div class="bg-bone py-4" aria-hidden="true">
+  <div class="container-content">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 220 52"
+      width="220"
+      height="52"
+      class="block"
+      fill="#972E28"
+    >
+      <!-- Row 1 (top, 5 bricks) -->
+      <rect x="0"   y="0"  width="40" height="10" rx="2" opacity="0.55"/>
+      <rect x="44"  y="0"  width="40" height="10" rx="2" opacity="0.48"/>
+      <rect x="88"  y="0"  width="40" height="10" rx="2" opacity="0.55"/>
+      <rect x="132" y="0"  width="40" height="10" rx="2" opacity="0.48"/>
+      <rect x="176" y="0"  width="40" height="10" rx="2" opacity="0.55"/>
 
-    <!-- Row 2 (middle, strongest): 0.55 / 0.48 -->
-    <rect x="-12" y="14" width="34" height="10" rx="2" opacity="0.55"/>
-    <rect x="26"  y="14" width="34" height="10" rx="2" opacity="0.48"/>
-    <rect x="64"  y="14" width="48" height="10" rx="2" opacity="0.55"/>
-    <rect x="116" y="14" width="34" height="10" rx="2" opacity="0.48"/>
-    <rect x="154" y="14" width="48" height="10" rx="2" opacity="0.55"/>
-    <rect x="206" y="14" width="34" height="10" rx="2" opacity="0.48"/>
+      <!-- Row 2 (4 bricks) -->
+      <rect x="0"   y="14" width="40" height="10" rx="2" opacity="0.48"/>
+      <rect x="44"  y="14" width="40" height="10" rx="2" opacity="0.55"/>
+      <rect x="88"  y="14" width="40" height="10" rx="2" opacity="0.48"/>
+      <rect x="132" y="14" width="40" height="10" rx="2" opacity="0.55"/>
 
-    <!-- Row 3 (bottom, faded): 0.22 / 0.18 -->
-    <rect x="0"   y="28" width="48" height="10" rx="2" opacity="0.18"/>
-    <rect x="52"  y="28" width="34" height="10" rx="2" opacity="0.22"/>
-    <rect x="90"  y="28" width="34" height="10" rx="2" opacity="0.18"/>
-    <rect x="128" y="28" width="48" height="10" rx="2" opacity="0.22"/>
-    <rect x="180" y="28" width="34" height="10" rx="2" opacity="0.18"/>
-    <rect x="218" y="28" width="22" height="10" rx="2" opacity="0.22"/>
-  </svg>
+      <!-- Row 3 (3 bricks) -->
+      <rect x="0"   y="28" width="40" height="10" rx="2" opacity="0.55"/>
+      <rect x="44"  y="28" width="40" height="10" rx="2" opacity="0.48"/>
+      <rect x="88"  y="28" width="40" height="10" rx="2" opacity="0.55"/>
+
+      <!-- Row 4 (2 bricks) -->
+      <rect x="0"   y="42" width="40" height="10" rx="2" opacity="0.48"/>
+      <rect x="44"  y="42" width="40" height="10" rx="2" opacity="0.55"/>
+    </svg>
+  </div>
 </div>
