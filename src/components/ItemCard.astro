@@ -14,6 +14,7 @@ const dateStr = d.published_at.toLocaleDateString('en-US', {
 });
 
 const truncated = d.summary.length > 240 ? d.summary.slice(0, 237).trimEnd() + '…' : d.summary;
+const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
 ---
 
 <article class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col">
@@ -22,6 +23,15 @@ const truncated = d.summary.length > 240 ? d.summary.slice(0, 237).trimEnd() + '
   )}
 
   <div class="flex flex-wrap items-center gap-2 text-xs text-slate mb-3 pr-16">
+    <img
+      src={faviconSrc}
+      alt=""
+      width="14"
+      height="14"
+      class="rounded-sm flex-shrink-0"
+      loading="lazy"
+      onerror="this.style.display='none'"
+    />
     <span class="uppercase tracking-wider">{d.source_domain}</span>
     <span aria-hidden="true">·</span>
     <span>{dateStr}</span>

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ItemCard from '../../components/ItemCard.astro';
+import FeatureItemCard from '../../components/FeatureItemCard.astro';
 import FilterBar from '../../components/FilterBar.astro';
 import OhioIcon from '../../components/OhioIcon.astro';
 import { getCollection } from 'astro:content';
@@ -9,7 +10,11 @@ import { MUNICIPALITIES } from '../../content/config';
 const all = await getCollection('items');
 const items = all
   .filter((i) => i.data.content_type === 'policy')
-  .sort((a, b) => b.data.published_at.getTime() - a.data.published_at.getTime());
+  .sort((a, b) => {
+    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+    return b.data.published_at.getTime() - a.data.published_at.getTime();
+  });
+const [feature, ...rest] = items;
 
 const muniOptions = MUNICIPALITIES.map((m) => ({ value: m, label: m.replace(/-/g, ' ') }));
 const statusValues = Array.from(new Set(items.map((i) => i.data.legislative_status).filter(Boolean) as string[])).sort();
@@ -39,17 +44,29 @@ const statusOptions = statusValues.map((s) => ({ value: s, label: s }));
       {items.length === 0 ? (
         <p class="text-slate italic">No policy items yet.</p>
       ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {items.map((item) => (
+        <>
+          {feature && (
             <div
+              class="mb-8"
               data-policy-item
-              data-muni={item.data.municipalities.join(',')}
-              data-status={item.data.legislative_status || ''}
+              data-muni={feature.data.municipalities.join(',')}
+              data-status={feature.data.legislative_status || ''}
             >
-              <ItemCard item={item} showPolicyBadge />
+              <FeatureItemCard item={feature} showPolicyBadge />
             </div>
-          ))}
-        </div>
+          )}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {rest.map((item) => (
+              <div
+                data-policy-item
+                data-muni={item.data.municipalities.join(',')}
+                data-status={item.data.legislative_status || ''}
+              >
+                <ItemCard item={item} showPolicyBadge />
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   </section>

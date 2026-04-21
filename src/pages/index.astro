@@ -1,20 +1,27 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
+import ByTheNumbers from '../components/ByTheNumbers.astro';
 import ModulePolicyWatch from '../components/ModulePolicyWatch.astro';
 import ModuleLatestNews from '../components/ModuleLatestNews.astro';
 import ModuleVendorSpotlight from '../components/ModuleVendorSpotlight.astro';
 import ModuleFeaturedResource from '../components/ModuleFeaturedResource.astro';
 import ModuleFeaturedGuide from '../components/ModuleFeaturedGuide.astro';
 import NewsletterCTA from '../components/NewsletterCTA.astro';
+import SectionDivider from '../components/SectionDivider.astro';
 ---
 
 <BaseLayout>
   <Hero />
+  <ByTheNumbers />
   <ModulePolicyWatch />
+  <SectionDivider />
   <ModuleLatestNews />
+  <SectionDivider />
   <ModuleVendorSpotlight />
+  <SectionDivider />
   <ModuleFeaturedResource />
+  <SectionDivider />
   <ModuleFeaturedGuide />
   <NewsletterCTA />
 </BaseLayout>

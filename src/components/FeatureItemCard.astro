@@ -1,0 +1,72 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  item: CollectionEntry<'items'>;
+  showPolicyBadge?: boolean;
+}
+
+const { item, showPolicyBadge = false } = Astro.props;
+const d = item.data;
+
+const dateStr = d.published_at.toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric',
+});
+
+// First sentence as pull quote (truncated if long).
+const firstSentence = d.summary.split(/(?<=[.!?])\s+/)[0] || d.summary;
+const pullQuote = firstSentence.length > 200 ? firstSentence.slice(0, 197).trimEnd() + '…' : firstSentence;
+
+const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
+---
+
+<article class="relative bg-bone-2 border border-rule overflow-hidden grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-6">
+  {showPolicyBadge && (
+    <span class="badge-policy absolute top-4 right-4 z-10">POLICY</span>
+  )}
+
+  <div class="md:col-span-2 p-6 md:p-8 flex flex-col">
+    <div class="flex items-center gap-2 text-xs text-slate mb-4 pr-16">
+      <img
+        src={faviconSrc}
+        alt=""
+        width="16"
+        height="16"
+        class="rounded-sm flex-shrink-0"
+        loading="lazy"
+        onerror="this.style.display='none'"
+      />
+      <span class="uppercase tracking-wider">{d.source_domain}</span>
+      <span aria-hidden="true">·</span>
+      <span>{dateStr}</span>
+    </div>
+
+    <h2 class="font-heading font-extrabold text-charcoal text-2xl md:text-3xl leading-tight mb-4">
+      <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
+        {d.title}
+      </a>
+    </h2>
+
+    <p class="text-base text-charcoal leading-relaxed mb-5">{d.summary}</p>
+
+    {d.why_it_matters && (
+      <p class="text-base text-slate italic border-l-4 border-brick pl-4 mb-2">
+        <span class="not-italic font-semibold text-brick uppercase tracking-wider text-xs mr-1">Why it matters:</span>
+        {d.why_it_matters}
+      </p>
+    )}
+  </div>
+
+  <div class="md:col-span-1 p-6 md:p-8 bg-bone border-t md:border-t-0 md:border-l border-rule flex flex-col justify-between">
+    {pullQuote && (
+      <blockquote class="font-heading font-bold text-brick text-lg md:text-xl leading-snug mb-6">
+        "{pullQuote}"
+      </blockquote>
+    )}
+
+    <div class="flex flex-wrap gap-1.5">
+      {d.topics.slice(0, 4).map(t => <span class="chip">{t}</span>)}
+      {d.municipalities.slice(0, 3).map(m => <span class="chip">{m.replace(/-/g, ' ')}</span>)}
+    </div>
+  </div>
+</article>
