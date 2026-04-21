@@ -1,5 +1,7 @@
 # BRIC.News — v1
 
+> **Live preview:** https://bric-news-site.andrew-m-swensen.workers.dev (deployed via Cloudflare Workers Static Assets, auto-deploys on push to `main`).
+
 **BRIC.News** is a continuously updated Columbus, Ohio real estate investor resource hub. It publishes local policy updates, market data, development news, a curated vendor directory, and a resource hub pulling together the municipal, county, and legal references investors reach for repeatedly.
 
 BRIC.News is positioned as an independent publication. It takes no sponsorships for news coverage, lists vendors for free, and uses editorial "Preferred" designations (one per category) rather than paid placements.
