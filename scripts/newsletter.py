@@ -115,21 +115,59 @@ def generate_intro(client, num_items: int, num_policy: int) -> str:
 
 
 def render_item(item: dict) -> str:
+    """Render an item block for the Beehiiv template, mirroring the site's
+    policy-vs-news distinction: news titles link to the source article,
+    policy titles stay plain with an explicit View source document link
+    at the bottom of the block."""
     title = item.get("title", "")
     why = item.get("why_it_matters", "")
     summary = item.get("summary", "")
     if len(summary) > 260:
         summary = summary[:257].rstrip() + "…"
-    url = item.get("source_url", "#")
+    url = (item.get("source_url") or "").strip()
+    content_type = item.get("content_type", "news")
+    is_policy = content_type == "policy"
+    has_real_source = bool(url) and "example.com" not in url
+
+    # Title: linked for news with a real URL; plain text otherwise.
+    if not is_policy and has_real_source:
+        title_html = (
+            f'<h3 style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:18px;'
+            f'color:#1F1F1F;line-height:1.3;">'
+            f'<a href="{url}" style="color:#1F1F1F;text-decoration:none;">{title}</a>'
+            f'</h3>'
+        )
+    else:
+        title_html = (
+            f'<h3 style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:18px;'
+            f'color:#1F1F1F;line-height:1.3;">{title}</h3>'
+        )
+
+    # Footer: policy items with a real URL get an explicit View source link;
+    # anything without a real URL gets a muted "Source pending" label.
+    if is_policy and has_real_source:
+        footer_html = (
+            f'<p style="margin:10px 0 0 0;font-size:13px;">'
+            f'<a href="{url}" style="color:#972E28;text-decoration:none;'
+            f'font-weight:600;">View source document →</a>'
+            f'</p>'
+        )
+    elif not has_real_source:
+        footer_html = (
+            f'<p style="margin:10px 0 0 0;font-size:12px;font-style:italic;'
+            f'color:#4A4A4A;">Source pending</p>'
+        )
+    else:
+        footer_html = ""
+
     return f"""
 <div style="margin-bottom:22px;padding-bottom:18px;border-bottom:1px solid #E5E0D8;">
-  <h3 style="margin:0 0 6px 0;font-family:Georgia,serif;font-size:18px;color:#1F1F1F;line-height:1.3;">
-    <a href="{url}" style="color:#1F1F1F;text-decoration:none;">{title}</a>
-  </h3>
+  {title_html}
   <p style="margin:0 0 10px 0;font-size:14px;color:#1F1F1F;line-height:1.5;">{summary}</p>
-  <p style="margin:0;font-size:14px;color:#4A4A4A;line-height:1.5;border-left:3px solid #B22222;padding-left:10px;">
-    <strong style="color:#B22222;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Why it matters: </strong>{why}
+  <p style="margin:0;font-size:14px;color:#4A4A4A;line-height:1.5;border-left:3px solid #972E28;padding-left:10px;">
+    <strong style="color:#972E28;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;">Why it matters: </strong>{why}
   </p>
+  {footer_html}
 </div>""".strip()
 
 
@@ -138,8 +176,8 @@ def render_vendor(vendor: dict) -> str:
     slug = vendor.get("_slug", "")
     cat = str(vendor.get("category", "")).replace("-", " ")
     desc = vendor.get("description", "")
-    url = f"https://bric.news/vendors/{slug}"
-    preferred = "<strong style=\"color:#B22222;\">Preferred · </strong>" if vendor.get("preferred") else ""
+    url = f"https://bric.news/business-directory/{slug}"
+    preferred = "<strong style=\"color:#972E28;\">Preferred · </strong>" if vendor.get("preferred") else ""
     return f"""
 <div style="margin-bottom:16px;">
   <div style="font-size:11px;text-transform:uppercase;color:#4A4A4A;letter-spacing:0.05em;">{cat}</div>
@@ -162,7 +200,7 @@ def render_resource(res: dict) -> str:
 
 def section(heading: str, inner_html: str) -> str:
     return f"""
-<h2 style="font-family:Georgia,serif;font-size:20px;color:#B22222;margin:30px 0 12px 0;border-bottom:2px solid #E5E0D8;padding-bottom:6px;">{heading}</h2>
+<h2 style="font-family:Georgia,serif;font-size:20px;color:#972E28;margin:30px 0 12px 0;border-bottom:2px solid #E5E0D8;padding-bottom:6px;">{heading}</h2>
 {inner_html}
 """.strip()
 
@@ -177,7 +215,7 @@ def build_html(intro: str, policy_items: list[dict], news_items: list[dict],
     parts: list[str] = [
         '<div style="max-width:600px;margin:0 auto;padding:24px;background:#FAF9F6;font-family:-apple-system,Segoe UI,sans-serif;color:#1F1F1F;">',
         '<div style="text-align:center;margin-bottom:24px;">',
-        '<h1 style="font-family:Georgia,serif;font-size:30px;color:#B22222;margin:0;letter-spacing:-0.02em;">BRIC<span style="color:#1F1F1F;">.</span>NEWS</h1>',
+        '<h1 style="font-family:Georgia,serif;font-size:30px;color:#972E28;margin:0;letter-spacing:-0.02em;">BRIC<span style="color:#1F1F1F;">.</span>NEWS</h1>',
         '<p style="margin:4px 0;font-size:13px;color:#4A4A4A;font-style:italic;">Buy. Rent. Invest. Columbus.</p>',
         '</div>',
         f'<p style="font-size:15px;line-height:1.6;margin:18px 0 30px 0;">{intro}</p>',
@@ -201,8 +239,8 @@ def build_html(intro: str, policy_items: list[dict], news_items: list[dict],
         'Reply to this email with corrections or vendor submissions.',
         '</p>',
         '<p style="font-size:12px;color:#4A4A4A;text-align:center;margin-top:14px;">',
-        '<a href="https://bric.news" style="color:#B22222;">View on BRIC.News</a> · ',
-        '<a href="https://bric.news/vendors" style="color:#B22222;">Submit a vendor</a>',
+        '<a href="https://bric.news" style="color:#972E28;">View on BRIC.News</a> · ',
+        '<a href="https://bric.news/business-directory" style="color:#972E28;">Submit a business</a>',
         '</p>',
         '</div>',
     ])
