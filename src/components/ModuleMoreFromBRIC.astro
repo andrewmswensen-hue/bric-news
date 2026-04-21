@@ -1,0 +1,59 @@
+---
+import { getCollection } from 'astro:content';
+import VendorCard from './VendorCard.astro';
+import ResourceCard from './ResourceCard.astro';
+
+// Business spotlight: 3 rotating vendors by ISO week.
+const vendors = (await getCollection('vendors')).sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+function isoWeek(d = new Date()) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil(((+date - +yearStart) / 86400000 + 1) / 7);
+}
+const week = isoWeek();
+const count = vendors.length;
+const pick = (offset: number) => vendors[(week + offset) % count];
+const spotlight = count >= 3 ? [pick(0), pick(1), pick(2)] : vendors.slice(0, 3);
+
+// Resource of the week.
+const resources = (await getCollection('resources')).sort((a, b) => a.data.label.localeCompare(b.data.label));
+const featuredResource = resources.length ? resources[week % resources.length] : null;
+---
+
+<section class="module-band bg-bone">
+  <div class="container-content">
+    <div class="mb-10">
+      <h2 class="module-heading">More from BRIC</h2>
+      <p class="module-sub">Businesses Columbus investors work with, and references worth bookmarking.</p>
+    </div>
+
+    <!-- Sub-section: Business Spotlight -->
+    <div class="mb-12">
+      <div class="flex items-end justify-between flex-wrap gap-2 mb-5">
+        <h3 class="font-heading font-bold text-brick text-lg uppercase tracking-wider">Business Spotlight</h3>
+        <a href="/business-directory" class="link-arrow text-sm">Browse the business directory →</a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {spotlight.map((v) => <VendorCard vendor={v} compact />)}
+      </div>
+    </div>
+
+    <!-- Sub-section: Resource of the Week -->
+    {featuredResource && (
+      <div>
+        <div class="flex items-end justify-between flex-wrap gap-2 mb-5">
+          <h3 class="font-heading font-bold text-brick text-lg uppercase tracking-wider">Resource of the Week</h3>
+          <a href="/resources" class="link-arrow text-sm">Browse all resources →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div class="md:col-span-2">
+            <ResourceCard resource={featuredResource} wide />
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+</section>

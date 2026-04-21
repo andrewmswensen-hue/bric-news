@@ -1,0 +1,72 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  item: CollectionEntry<'items'>;
+  variant?: 'policy' | 'news';
+}
+
+const { item, variant } = Astro.props;
+const d = item.data;
+const kind = variant ?? (d.content_type === 'policy' ? 'policy' : 'news');
+
+const dateStr = d.published_at.toLocaleDateString('en-US', {
+  month: 'short', day: 'numeric',
+});
+
+const summary = d.summary.length > 160 ? d.summary.slice(0, 157).trimEnd() + '…' : d.summary;
+const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
+
+const isPolicy = kind === 'policy';
+const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
+const linkTitle = !isPolicy && isRealSource;
+---
+
+<article class="bg-bone-2 border border-rule p-5 flex flex-col h-full">
+  <div class="flex items-center gap-2 mb-3">
+    <span class={isPolicy ? 'badge-policy' : 'chip uppercase'}>{isPolicy ? 'Policy' : 'News'}</span>
+    <span class="text-xs text-slate">·</span>
+    <img
+      src={faviconSrc}
+      alt=""
+      width="12"
+      height="12"
+      class="rounded-sm flex-shrink-0"
+      loading="lazy"
+      onerror="this.style.display='none'"
+    />
+    <span class="text-xs text-slate uppercase tracking-wider">{d.source_domain}</span>
+    <span class="text-xs text-slate">· {dateStr}</span>
+  </div>
+
+  <h3 class="font-heading font-bold text-lg leading-snug mb-2">
+    {linkTitle ? (
+      <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
+        {d.title}
+      </a>
+    ) : (
+      <span class="text-charcoal">{d.title}</span>
+    )}
+  </h3>
+
+  <p class="text-sm text-charcoal leading-relaxed mb-3">{summary}</p>
+
+  <div class="mt-auto pt-2 flex items-center justify-between gap-3 text-xs">
+    <a
+      href={isPolicy ? '/policy' : '/news'}
+      class="text-slate hover:text-brick no-underline"
+    >
+      {isPolicy ? 'More policy →' : 'More news →'}
+    </a>
+    {isPolicy && isRealSource && (
+      <a
+        href={d.source_url}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-brick font-medium no-underline hover:underline"
+      >
+        View source →
+      </a>
+    )}
+  </div>
+</article>

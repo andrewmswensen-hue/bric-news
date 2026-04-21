@@ -1,23 +1,51 @@
 ---
+import { getCollection } from 'astro:content';
 import NewsletterCTA from './NewsletterCTA.astro';
+import HeroStoryCard from './HeroStoryCard.astro';
+
+const all = await getCollection('items');
+
+const policyPick = all
+  .filter((i) => i.data.content_type === 'policy')
+  .sort((a, b) => {
+    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+    const rs = (b.data.relevance_score ?? 0) - (a.data.relevance_score ?? 0);
+    if (rs !== 0) return rs;
+    return b.data.published_at.getTime() - a.data.published_at.getTime();
+  })[0];
+
+const newsPick = all
+  .filter((i) => i.data.content_type !== 'policy')
+  .sort((a, b) => {
+    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
+    return b.data.published_at.getTime() - a.data.published_at.getTime();
+  })[0];
 ---
 
 <section class="bg-bone">
-  <div class="container-content pt-20 md:pt-28 pb-16 md:pb-20 text-center">
-    <h1 class="sr-only">BRIC.News – Buy. Rent. Invest. Columbus.</h1>
-    <img
-      src="/logos/bric-logo-color-tagline.svg"
-      alt="BRIC — Buy · Rent · Invest · Columbus"
-      class="mx-auto w-full max-w-[520px] md:max-w-[640px] h-auto"
-    />
-    <p class="mt-4 text-slate text-sm md:text-base">Columbus investor news, business directory, and resources. Updated daily.</p>
+  <div class="container-content pt-14 md:pt-20 pb-14 md:pb-16">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-14 items-center">
+      <!-- Left: branding + subscribe -->
+      <div class="md:col-span-2 text-center md:text-left">
+        <h1 class="sr-only">BRIC.News – Buy. Rent. Invest. Columbus.</h1>
+        <img
+          src="/logos/bric-logo-color-tagline.svg"
+          alt="BRIC – Buy · Rent · Invest · Columbus"
+          class="mx-auto md:mx-0 w-full max-w-[340px] md:max-w-[400px] h-auto"
+        />
+        <p class="mt-5 text-slate text-sm md:text-base">
+          Columbus investor news, business directory, and resources. Updated daily.
+        </p>
+        <div class="mt-6 mx-auto md:mx-0 max-w-[360px]">
+          <NewsletterCTA inline />
+        </div>
+      </div>
 
-    <div class="mt-8 mx-auto max-w-[400px]">
-      <NewsletterCTA inline />
+      <!-- Right: top policy + top news stacked -->
+      <div class="md:col-span-3 grid grid-cols-1 gap-5">
+        {policyPick && <HeroStoryCard item={policyPick} variant="policy" />}
+        {newsPick && <HeroStoryCard item={newsPick} variant="news" />}
+      </div>
     </div>
-
-    <p class="mt-6 text-sm">
-      <a href="/business-directory" class="link-arrow">Or browse the business directory →</a>
-    </p>
   </div>
 </section>
