@@ -1,6 +1,67 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import OhioIcon from '../components/OhioIcon.astro';
+import { getCollection } from 'astro:content';
+
+/**
+ * Build-time count of distinct Columbus-metro places BRIC has touched in any
+ * item (policy, news, market_data, event) or dedicated city hub. Recomputes
+ * on every build, so the About stat stays truthful as content grows.
+ */
+const KNOWN_PLACES = [
+  // 13 covered municipalities / counties (all have dedicated hubs)
+  'Columbus', 'Dublin', 'Westerville', 'Grove City', 'Gahanna', 'Hilliard',
+  'Reynoldsburg', 'Worthington', 'Upper Arlington', 'Bexley',
+  'Franklin County', 'Delaware County', 'Licking County',
+  // Other Columbus-metro places our content may reference
+  'Powell', 'Whitehall', 'Grandview Heights', 'Canal Winchester', 'Granville',
+  'Delaware', 'Pickerington', 'New Albany', 'Lancaster', 'Newark', 'London',
+  'Marysville', 'Sunbury', 'Baltimore', 'Heath', 'Hebron', 'Buckeye Lake',
+  'Plain City', 'Lewis Center', 'Franklin', 'Johnstown', 'Pataskala',
+  'Groveport', 'Obetz', 'Minerva Park', 'Dublin', 'Ostrander',
+] as const;
+
+const MUNICIPALITY_TO_CITY: Record<string, string> = {
+  columbus: 'Columbus',
+  dublin: 'Dublin',
+  westerville: 'Westerville',
+  'grove-city': 'Grove City',
+  gahanna: 'Gahanna',
+  hilliard: 'Hilliard',
+  reynoldsburg: 'Reynoldsburg',
+  worthington: 'Worthington',
+  'upper-arlington': 'Upper Arlington',
+  bexley: 'Bexley',
+  'franklin-county': 'Franklin County',
+  'delaware-county': 'Delaware County',
+  'licking-county': 'Licking County',
+};
+
+const [allItems, allCities] = await Promise.all([
+  getCollection('items'),
+  getCollection('cities'),
+]);
+
+// Haystack of every string worth searching for place references
+const haystack = allItems
+  .map((i) => [
+    i.data.title,
+    i.data.summary,
+    (i.data.entities ?? []).join(' '),
+    (i.data.municipalities ?? []).map((m) => MUNICIPALITY_TO_CITY[m] || '').join(' '),
+  ].join(' '))
+  .join(' ');
+
+const placesCovered = new Set<string>();
+// Start with every dedicated hub in the cities collection
+for (const c of allCities) placesCovered.add(c.data.name);
+// Plus any known place that shows up in any item's text
+for (const place of KNOWN_PLACES) {
+  const safe = place.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+  const re = new RegExp(`\\b${safe}\\b`);
+  if (re.test(haystack)) placesCovered.add(place);
+}
+const placesCount = placesCovered.size;
 ---
 
 <BaseLayout title="About – BRIC.News" description="Editorial mission, correction policy, and takedown policy for BRIC.News.">
@@ -29,8 +90,8 @@ import OhioIcon from '../components/OhioIcon.astro';
     <div class="container-content py-8">
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10 text-center md:text-left">
         <div>
-          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">13</div>
-          <div class="text-xs text-slate uppercase tracking-wider">Columbus-metro municipalities covered</div>
+          <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">{placesCount}</div>
+          <div class="text-xs text-slate uppercase tracking-wider">Columbus-metro places in our coverage</div>
         </div>
         <div>
           <div class="font-heading font-extrabold text-brick text-3xl md:text-4xl leading-none mb-1">3</div>
