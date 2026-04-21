@@ -1,11 +1,11 @@
 ---
 /**
  * Subtle running-bond brick pattern divider between homepage modules.
- * 3 offset rows of bricks at low opacity — reads as texture, not ornament.
+ * Middle row holds the full accent; top and bottom rows fade out.
  */
 ---
 
-<div class="bg-bone py-5" aria-hidden="true">
+<div class="bg-bone py-3" aria-hidden="true">
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 240 42"
@@ -13,24 +13,28 @@
     height="42"
     class="mx-auto block"
   >
-    <g fill="#972E28" opacity="0.55">
-      <!-- Row 1 -->
+    <!-- Row 1 (top, faded) -->
+    <g fill="#972E28" opacity="0.22">
       <rect x="0"   y="0"  width="34" height="10" rx="2"/>
       <rect x="38"  y="0"  width="48" height="10" rx="2"/>
       <rect x="90"  y="0"  width="34" height="10" rx="2"/>
       <rect x="128" y="0"  width="48" height="10" rx="2"/>
       <rect x="180" y="0"  width="34" height="10" rx="2"/>
       <rect x="218" y="0"  width="22" height="10" rx="2"/>
+    </g>
 
-      <!-- Row 2 (staggered) -->
+    <!-- Row 2 (middle, strongest) -->
+    <g fill="#972E28" opacity="0.55">
       <rect x="-12" y="14" width="34" height="10" rx="2"/>
       <rect x="26"  y="14" width="34" height="10" rx="2"/>
       <rect x="64"  y="14" width="48" height="10" rx="2"/>
       <rect x="116" y="14" width="34" height="10" rx="2"/>
       <rect x="154" y="14" width="48" height="10" rx="2"/>
       <rect x="206" y="14" width="34" height="10" rx="2"/>
+    </g>
 
-      <!-- Row 3 -->
+    <!-- Row 3 (bottom, faded) -->
+    <g fill="#972E28" opacity="0.22">
       <rect x="0"   y="28" width="48" height="10" rx="2"/>
       <rect x="52"  y="28" width="34" height="10" rx="2"/>
       <rect x="90"  y="28" width="34" height="10" rx="2"/>

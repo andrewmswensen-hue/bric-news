@@ -45,20 +45,20 @@ const stats = [
 ];
 ---
 
-<section class="bg-bone-2">
+<section class="bg-brick text-bone">
   <div class="container-content py-10 md:py-12">
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
       {stats.map((s) => (
-        <a href={s.href} class="block no-underline group">
+        <a href={s.href} class="block no-underline group text-bone">
           <div class="flex items-baseline gap-2 mb-1">
-            <span class="font-heading font-extrabold text-brick text-sm uppercase tracking-widest">{s.letter}</span>
-            <span class="text-slate text-xs uppercase tracking-wider">{s.label}</span>
+            <span class="font-heading font-extrabold text-bone text-sm uppercase tracking-widest">{s.letter}</span>
+            <span class="text-bone/70 text-xs uppercase tracking-wider">{s.label}</span>
           </div>
-          <div class="font-heading font-extrabold text-charcoal text-3xl md:text-4xl tracking-tight leading-none mb-2 group-hover:text-brick transition-colors">
+          <div class="font-heading font-extrabold text-bone text-3xl md:text-4xl tracking-tight leading-none mb-2 group-hover:underline decoration-bone underline-offset-4">
             {s.value}
           </div>
-          <div class="text-charcoal text-sm font-medium">{s.caption}</div>
-          <div class="text-slate text-xs mt-1">{s.source}</div>
+          <div class="text-bone text-sm font-medium">{s.caption}</div>
+          <div class="text-bone/60 text-xs mt-1">{s.source}</div>
         </a>
       ))}
     </div>
