@@ -6,7 +6,7 @@ const all = await getCollection('items');
 const news = all
   .filter((i) => i.data.content_type !== 'policy')
   .sort((a, b) => b.data.published_at.getTime() - a.data.published_at.getTime())
-  .slice(0, 6);
+  .slice(0, 3);
 ---
 
 <section class="module-band bg-bone-2">
