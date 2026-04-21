@@ -29,30 +29,78 @@ const CATEGORY_LABEL: Record<string, string> = {
 
 const published = g.published_at.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 const updated = g.updated_at?.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+const canonicalUrl = `https://bric.news/guides/${guide.slug}/`;
+
+// JSON-LD structured data for Article + BreadcrumbList.
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: g.title,
+  description: g.description,
+  author: {
+    '@type': 'Organization',
+    name: g.author,
+  },
+  publisher: {
+    '@type': 'Organization',
+    name: 'BRIC.News',
+    logo: {
+      '@type': 'ImageObject',
+      url: 'https://bric.news/logos/bric-logo-color.svg',
+    },
+  },
+  datePublished: g.published_at.toISOString(),
+  ...(g.updated_at && { dateModified: g.updated_at.toISOString() }),
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': canonicalUrl,
+  },
+  articleSection: CATEGORY_LABEL[g.category] ?? g.category,
+  ...(g.tags.length > 0 && { keywords: g.tags.join(', ') }),
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'BRIC.News', item: 'https://bric.news/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://bric.news/guides/' },
+    { '@type': 'ListItem', position: 3, name: g.title, item: canonicalUrl },
+  ],
+};
 ---
 
-<BaseLayout title={`${g.title} – BRIC.News`} description={g.description}>
+<BaseLayout title={`${g.title} – BRIC.News`} description={g.description} canonical={canonicalUrl}>
+  <!-- Slim decorative band at the top. Photo option still supported, but defaults to the slim brick pattern. -->
   {g.hero_treatment === 'photo' && g.hero_image ? (
-    <div class="w-full aspect-[3/1] bg-bone-2 border-b border-rule overflow-hidden">
-      <img src={g.hero_image} alt="" class="w-full h-full object-cover grayscale contrast-110"/>
+    <div class="w-full h-32 md:h-40 bg-bone-2 border-b border-rule overflow-hidden">
+      <img src={g.hero_image} alt="" class="w-full h-full object-cover grayscale contrast-110" />
     </div>
   ) : (
-    <GuideHeroPattern seed={guide.slug} size="wide" />
+    <div class="w-full h-12 md:h-16 bg-bone-2 border-b border-rule overflow-hidden">
+      <GuideHeroPattern seed={guide.slug} size="wide" />
+    </div>
   )}
 
-  <article class="bg-bone module-band">
-    <div class="container-content max-w-prose">
-      <nav class="text-sm text-slate mb-6">
+  <article class="bg-bone">
+    <div class="container-content max-w-3xl py-10 md:py-16">
+      <nav class="text-sm text-slate mb-8">
         <a href="/guides" class="hover:text-brick no-underline">Guides</a>
-        <span class="mx-2">/</span>
-        <span class="capitalize">{CATEGORY_LABEL[g.category]}</span>
+        <span class="mx-2" aria-hidden="true">/</span>
+        <span>{CATEGORY_LABEL[g.category] ?? g.category}</span>
       </nav>
 
-      <h1 class="font-heading font-extrabold text-3xl md:text-5xl text-charcoal leading-tight mb-4">{g.title}</h1>
+      <div class="flex flex-wrap items-center gap-2 mb-5">
+        <span class="chip capitalize">{CATEGORY_LABEL[g.category] ?? g.category}</span>
+        {g.updated_at && <span class="chip">Updated</span>}
+      </div>
 
-      <p class="text-lg text-slate leading-relaxed mb-6">{g.description}</p>
+      <h1 class="font-heading font-extrabold text-4xl md:text-5xl lg:text-6xl text-charcoal leading-[1.05] tracking-tight mb-5">{g.title}</h1>
 
-      <div class="flex flex-wrap items-center gap-3 text-sm text-slate border-b border-rule pb-6 mb-8">
+      <p class="text-lg md:text-xl text-slate leading-relaxed mb-8">{g.description}</p>
+
+      <div class="flex flex-wrap items-center gap-3 text-sm text-slate border-y border-rule py-4 mb-10">
         <span>By {g.author}</span>
         <span aria-hidden="true">·</span>
         <span>{published}</span>
@@ -67,19 +115,24 @@ const updated = g.updated_at?.toLocaleDateString('en-US', { month: 'long', day: 
       </div>
 
       {g.tags.length > 0 && (
-        <div class="mt-10 pt-6 border-t border-rule flex flex-wrap gap-1.5">
-          {g.tags.map((t) => <span class="chip">{t}</span>)}
+        <div class="mt-12 pt-6 border-t border-rule">
+          <p class="text-xs uppercase tracking-wider text-slate mb-3">Tags</p>
+          <div class="flex flex-wrap gap-1.5">
+            {g.tags.map((t) => <span class="chip">{t}</span>)}
+          </div>
         </div>
       )}
     </div>
+  </article>
 
-    {related.length > 0 && (
-      <div class="container-content mt-16">
-        <h2 class="font-heading font-bold text-charcoal text-xl mb-6">Related guides</h2>
+  {related.length > 0 && (
+    <section class="bg-bone-2 border-t border-rule">
+      <div class="container-content py-12 md:py-16">
+        <h2 class="font-heading font-bold text-charcoal text-xl md:text-2xl mb-6">Related guides</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           {related.map((rg) => (
-            <a href={`/guides/${rg.slug}`} class="bg-bone-2 border border-rule overflow-hidden no-underline hover:border-brick transition-colors">
-              <GuideHeroPattern seed={rg.slug} size="card"/>
+            <a href={`/guides/${rg.slug}`} class="bg-bone border border-rule overflow-hidden no-underline hover:border-brick transition-colors">
+              <GuideHeroPattern seed={rg.slug} size="card" />
               <div class="p-5">
                 <h3 class="font-heading font-bold text-base text-charcoal mb-2">{rg.data.title}</h3>
                 <p class="text-sm text-slate line-clamp-2">{rg.data.description}</p>
@@ -88,19 +141,29 @@ const updated = g.updated_at?.toLocaleDateString('en-US', { month: 'long', day: 
           ))}
         </div>
       </div>
-    )}
-  </article>
+    </section>
+  )}
+
+  <!-- JSON-LD structured data for SEO + AI crawlers -->
+  <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
 </BaseLayout>
 
 <style is:global>
-  .guide-body h2 { @apply font-heading font-bold text-2xl text-charcoal mt-10 mb-3; }
-  .guide-body h3 { @apply font-heading font-bold text-xl text-charcoal mt-8 mb-2; }
-  .guide-body p  { @apply text-charcoal leading-relaxed mb-5; }
-  .guide-body ul, .guide-body ol { @apply list-disc pl-6 mb-5 space-y-1 text-charcoal; }
+  .guide-body { @apply text-charcoal; }
+  .guide-body h2 { @apply font-heading font-bold text-2xl md:text-3xl text-charcoal mt-12 mb-4; }
+  .guide-body h3 { @apply font-heading font-bold text-xl md:text-2xl text-charcoal mt-10 mb-3; }
+  .guide-body p  { @apply text-base md:text-lg leading-relaxed mb-6; }
+  .guide-body ul, .guide-body ol { @apply text-base md:text-lg list-disc pl-6 mb-6 space-y-2; }
   .guide-body ol { @apply list-decimal; }
-  .guide-body a  { @apply text-brick; }
+  .guide-body li { @apply leading-relaxed; }
+  .guide-body a  { @apply text-brick underline underline-offset-2; }
   .guide-body strong { @apply text-charcoal font-semibold; }
   .guide-body blockquote {
-    @apply border-l-4 border-brick pl-4 italic text-slate my-6;
+    @apply border-l-4 border-brick pl-5 italic text-slate my-8 text-lg;
+  }
+  .guide-body hr { @apply my-10 border-rule; }
+  .guide-body code {
+    @apply bg-bone-2 text-charcoal text-sm px-1.5 py-0.5 rounded font-mono;
   }
 </style>

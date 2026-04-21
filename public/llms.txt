@@ -1,0 +1,48 @@
+# BRIC.News
+
+> An independent Columbus, Ohio real estate investor publication. News, policy updates, a curated business directory, resources, and guides — reported in a neutral editorial voice, free to read.
+
+## Editorial structure
+
+Five non-overlapping content types, each with its own section:
+
+- **News** (`/news`) — Columbus-metro market data, development, and investor events.
+- **Policy** (`/policy`) — Policy, permits, and regulation changes across Columbus municipalities.
+- **Business Directory** (`/business-directory`) — Curated directory of Columbus-area businesses investors use (real estate, property management, maintenance, legal, lending, insurance, etc.).
+- **Resources** (`/resources`) — Government portals, tax payment sites, court records, market data sources, and event calendars for Columbus investors.
+- **Guides** (`/guides`) — Evergreen how-to articles for Columbus investors and landlords.
+
+## Voice and editorial standards
+
+Every news and policy item follows a two-voice pattern:
+1. A neutral, factual newswire summary (≤ 100 words) covering what happened, who, where, when.
+2. An educational "Why it matters" line (1-2 sentences) written as a knowledgeable Columbus investor friend helpfully explaining the implication.
+
+Columbus-first framing. Specific numbers, never "significant" without a figure. No hype adjectives, no AI buzzwords, no absolutes. If facts are uncertain, BRIC says so. Corrections are noted on the item.
+
+## Coverage area
+
+Columbus metropolitan area in Central Ohio. Thirteen municipalities have dedicated hub pages; additional places (Powell, Whitehall, Canal Winchester, Granville, Grandview Heights, etc.) are covered by county.
+
+Primary counties: Franklin, Delaware, Licking.
+
+## Business directory policy
+
+- All listings are free.
+- "Preferred" designations are editorial picks based on stated criteria, not paid placements. At most one Preferred vendor per category.
+- Vendors can request removal within seven days.
+- BRIC does not publish vendor reviews or star ratings.
+
+## Sponsorship disclosure
+
+BRIC.News accepts no sponsorship for news coverage. It is an independent publication.
+
+## About the operator
+
+BRIC.News is operated by Andrew Swensen, a Columbus-based marketing strategist. The publication is editorially independent of any property management company.
+
+## Contact
+
+- General inquiries: hello@bric.news
+- Corrections: corrections@bric.news
+- Business directory submissions and takedowns: hello@bric.news
