@@ -98,6 +98,10 @@
     @apply inline-block text-[10px] uppercase tracking-widest bg-brick text-bone px-2 py-0.5 rounded font-semibold;
   }
 
+  .badge-news {
+    @apply inline-block text-[10px] uppercase tracking-widest bg-bone text-brick border border-brick px-2 py-0.5 rounded font-semibold;
+  }
+
   .ribbon-preferred {
     @apply inline-block text-[10px] uppercase tracking-widest bg-brick text-bone px-2 py-0.5 rounded font-semibold;
   }
