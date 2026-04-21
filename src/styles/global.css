@@ -99,7 +99,7 @@
   }
 
   .badge-news {
-    @apply inline-block text-[10px] uppercase tracking-widest bg-brick text-bone px-2 py-0.5 rounded font-semibold ring-1 ring-brick ring-offset-2 ring-offset-bone-2;
+    @apply inline-block text-[10px] uppercase tracking-widest bg-white text-brick border-2 border-brick px-2 py-[1px] rounded font-semibold;
   }
 
   .ribbon-preferred {
