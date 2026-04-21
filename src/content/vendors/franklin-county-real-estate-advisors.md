@@ -7,6 +7,7 @@ website: "https://example.com/fcrea"
 phone: "614-555-0188"
 email: "hello@example.com"
 address: "Columbus, OH"
+city_label: "Columbus, OH"
 description: "Investor-focused brokerage serving Central Ohio. Works primarily with buy-and-hold and small multifamily investors, with additional experience on 1031 exchanges and portfolio dispositions. Not a high-volume retail brokerage."
 specialty_notes: "Partners carry CCIM and NAR Investor specialist credentials. Active on the investor side of the Columbus REALTORS MLS subsection."
 years_in_business: 9

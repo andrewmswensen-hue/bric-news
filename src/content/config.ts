@@ -86,6 +86,8 @@ const vendors = defineCollection({
     phone: z.string().optional(),
     email: z.string().email().optional(),
     address: z.string().optional(),
+    logo_url: z.string().optional(),
+    city_label: z.string().optional(),
     description: z.string(),
     specialty_notes: z.string().optional(),
     years_in_business: z.number().optional(),

@@ -11,38 +11,68 @@ const v = vendor.data;
 const slug = vendor.slug;
 
 const categoryLabel = v.category.replace(/-/g, ' ');
+const cityLabel = v.city_label || (v.address?.split(',')[0]?.trim() ?? '');
+const initial = (v.name[0] || 'B').toUpperCase();
 ---
 
-<article class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col">
-  {v.preferred && (
-    <span class="ribbon-preferred absolute top-4 right-4">Preferred</span>
-  )}
-
-  <div class="mb-2 pr-20">
-    <span class="chip capitalize">{categoryLabel}</span>
-  </div>
-
-  <h3 class="font-heading font-bold text-lg leading-snug mb-1">
-    <a href={`/vendors/${slug}`} class="text-charcoal hover:text-brick no-underline">{v.name}</a>
-  </h3>
-
-  <p class="text-sm text-charcoal leading-relaxed mb-3">{v.description}</p>
-
-  {v.preferred && v.preferred_reason && !compact && (
-    <p class="text-sm text-slate italic border-l-2 border-brick pl-3 mb-3">
-      <span class="not-italic font-medium text-brick uppercase tracking-wider text-xs mr-1">Why preferred:</span>
-      {v.preferred_reason}
-    </p>
-  )}
-
-  {v.sub_categories.length > 0 && (
-    <div class="mt-auto flex flex-wrap gap-1.5 pt-2">
-      {v.sub_categories.slice(0, 4).map(sc => <span class="chip capitalize">{sc.replace(/-/g, ' ')}</span>)}
+{compact ? (
+  <article class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col">
+    {v.preferred && (
+      <span class="ribbon-preferred absolute top-4 right-4">Preferred</span>
+    )}
+    <div class="mb-2 pr-20">
+      <span class="chip capitalize">{categoryLabel}</span>
     </div>
-  )}
+    <h3 class="font-heading font-bold text-lg leading-snug mb-1">
+      <a href={`/business-directory/${slug}`} class="text-charcoal hover:text-brick no-underline">{v.name}</a>
+    </h3>
+    <p class="text-sm text-charcoal leading-relaxed mb-3">{v.description}</p>
+    {v.sub_categories.length > 0 && (
+      <div class="mt-auto flex flex-wrap gap-1.5 pt-2">
+        {v.sub_categories.slice(0, 3).map(sc => <span class="chip capitalize">{sc.replace(/-/g, ' ')}</span>)}
+      </div>
+    )}
+  </article>
+) : (
+  <article class="relative bg-bone-2 border border-rule flex flex-col overflow-hidden h-full group">
+    {v.preferred && (
+      <span class="ribbon-preferred absolute top-3 right-3 z-10">Preferred</span>
+    )}
 
-  <div class="flex items-center gap-3 mt-3 text-xs text-slate">
-    {v.website && <a href={v.website} target="_blank" rel="noopener noreferrer" class="hover:text-brick no-underline">Website</a>}
-    {v.phone && <a href={`tel:${v.phone}`} class="hover:text-brick no-underline">{v.phone}</a>}
-  </div>
-</article>
+    <a href={`/business-directory/${slug}`} class="block no-underline" aria-label={v.name}>
+      <div class="aspect-[4/3] bg-white border-b border-rule flex items-center justify-center p-6">
+        {v.logo_url ? (
+          <img src={v.logo_url} alt={v.name} class="max-h-full max-w-full object-contain" />
+        ) : (
+          <div class="flex items-center justify-center w-24 h-24 rounded-full bg-brick/10 border border-brick/20">
+            <span class="font-heading font-extrabold text-4xl text-brick">{initial}</span>
+          </div>
+        )}
+      </div>
+    </a>
+
+    <div class="flex flex-col flex-1 p-5">
+      <div class="mb-2">
+        <span class="chip capitalize">{categoryLabel}</span>
+      </div>
+      <h3 class="font-heading font-bold text-lg leading-snug mb-2">
+        <a href={`/business-directory/${slug}`} class="text-charcoal hover:text-brick no-underline">{v.name}</a>
+      </h3>
+      <p class="text-sm text-charcoal leading-relaxed mb-4 line-clamp-3">{v.description}</p>
+
+      <div class="mt-auto">
+        {cityLabel && (
+          <p class="text-xs text-slate mb-2 flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>{cityLabel}</span>
+          </p>
+        )}
+        {v.website ? (
+          <a href={v.website} target="_blank" rel="noopener noreferrer" class="text-sm font-medium text-brick no-underline hover:underline">Visit website →</a>
+        ) : (
+          <a href={`/business-directory/${slug}`} class="text-sm font-medium text-brick no-underline hover:underline">View details →</a>
+        )}
+      </div>
+    </div>
+  </article>
+)}

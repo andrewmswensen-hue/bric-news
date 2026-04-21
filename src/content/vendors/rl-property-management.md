@@ -7,6 +7,7 @@ website: "https://www.rlpmg.com"
 phone: "614-725-3059"
 email: "hello@rlpmg.com"
 address: "Gahanna, OH"
+city_label: "Gahanna, OH"
 description: "Residential property management firm headquartered in Gahanna. Focus on class A/B single-family homes and small multifamily properties across the Columbus metro. Publishes a live operator KPI scorecard and operates on a zero-leasing-fee pricing model."
 specialty_notes: "Zero-leasing-fee pricing aligns incentives with owners on tenant retention. Published live performance KPIs. Founded 2013."
 years_in_business: 13

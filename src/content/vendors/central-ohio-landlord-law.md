@@ -7,6 +7,7 @@ website: "https://example.com/central-ohio-landlord-law"
 phone: "614-555-0142"
 email: "info@example.com"
 address: "Columbus, OH"
+city_label: "Columbus, OH"
 description: "Boutique law firm focused exclusively on Ohio landlord-tenant matters. Handles evictions in Franklin, Delaware, and Licking counties, lease drafting, and fair-housing counseling. Flat-fee pricing on most eviction filings."
 specialty_notes: "High-volume eviction practice with a familiar presence at Franklin County Municipal Court. Responsive on same-day compliance questions."
 years_in_business: 11

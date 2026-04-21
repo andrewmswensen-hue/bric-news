@@ -24,7 +24,7 @@ const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', d
   <section class="module-band bg-bone">
     <div class="container-content">
       <nav class="text-sm text-slate mb-6">
-        <a href="/vendors" class="hover:text-brick no-underline">Vendors</a>
+        <a href="/business-directory" class="hover:text-brick no-underline">Business Directory</a>
         <span class="mx-2">/</span>
         <span class="capitalize">{categoryLabel}</span>
       </nav>
@@ -42,7 +42,7 @@ const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', d
 
           {v.preferred && v.preferred_reason && (
             <aside class="bg-bone-2 border-l-4 border-brick p-4 mb-6">
-              <p class="text-xs uppercase tracking-wider text-brick font-semibold mb-2">Why BRIC lists this vendor as Preferred</p>
+              <p class="text-xs uppercase tracking-wider text-brick font-semibold mb-2">Why BRIC lists this business as Preferred</p>
               <p class="text-charcoal">{v.preferred_reason}</p>
             </aside>
           )}
@@ -80,6 +80,11 @@ const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', d
 
         <aside class="md:col-span-1">
           <div class="bg-bone-2 border border-rule p-5 sticky top-6">
+            {v.logo_url && (
+              <div class="aspect-[4/3] bg-white border border-rule flex items-center justify-center p-4 mb-4">
+                <img src={v.logo_url} alt={v.name} class="max-h-full max-w-full object-contain" />
+              </div>
+            )}
             <h3 class="font-heading font-bold text-charcoal text-base mb-4">Contact</h3>
             <div class="space-y-3 text-sm">
               {v.website && (
@@ -104,9 +109,9 @@ const verified = v.last_verified.toLocaleDateString('en-US', { month: 'short', d
 
       {related.length > 0 && (
         <div class="mt-16">
-          <h2 class="font-heading font-bold text-charcoal text-xl mb-6 capitalize">Related vendors in {categoryLabel}</h2>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {related.map((rv) => <VendorCard vendor={rv} compact />)}
+          <h2 class="font-heading font-bold text-charcoal text-xl mb-6 capitalize">Related businesses in {categoryLabel}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {related.map((rv) => <VendorCard vendor={rv} />)}
           </div>
         </div>
       )}

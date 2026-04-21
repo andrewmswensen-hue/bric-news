@@ -214,7 +214,7 @@ Bypassing the pipeline is the normal path for vendors, resources, cities, and oc
 
 ### Add a vendor
 
-Create a markdown file at `src/content/vendors/<slug>.md`:
+Create a markdown file at `src/content/business-directory/<slug>.md`:
 
 ```markdown
 ---

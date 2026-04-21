@@ -7,6 +7,7 @@ website: "https://example.com/scioto-lending"
 phone: "614-555-0311"
 email: "loans@example.com"
 address: "Columbus, OH"
+city_label: "Columbus, OH"
 description: "Private lender serving Central Ohio investors. Product lines include DSCR rental loans, 12-month fix-and-flip bridge loans, and small-balance commercial portfolio loans. Direct lender, not a broker."
 specialty_notes: "In-house underwriting keeps turnaround on DSCR approvals quick. Comfortable with sub-$150k rental properties, which many national lenders will not touch."
 years_in_business: 8

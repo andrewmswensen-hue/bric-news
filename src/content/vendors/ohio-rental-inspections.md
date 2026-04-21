@@ -6,6 +6,7 @@ service_area: ["columbus", "franklin-county", "delaware-county", "licking-county
 website: "https://example.com/ohio-rental-inspections"
 phone: "614-555-0421"
 email: "inspections@example.com"
+city_label: "Columbus, OH"
 description: "Home inspection firm focused on rental due-diligence inspections and Section 8 / HQS compliance inspections. Produces standardized reports oriented toward investor underwriting rather than retail buyer checklists."
 specialty_notes: "Same-week turnaround on investor reports. Comfortable with multi-property portfolio inspection days."
 years_in_business: 7
