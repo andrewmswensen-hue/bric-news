@@ -1,8 +1,8 @@
 # BRIC.News — v1
 
-> **Repo:** https://github.com/andrewmswensen-hue/bric-news · **Old preview (not updating):** https://bric-news-site.andrew-m-swensen.workers.dev
+> **Repo:** https://github.com/andrewmswensen-hue/bric-news · **Preview:** https://andrewmswensen-hue.github.io/bric-news/
 >
-> Hosting is being re-done before public launch. The Cloudflare deploy workflow is manual-only until then. See `CLAUDE.md` for current status.
+> Everything lives on GitHub until launch: code, content, the daily feed, and the preview site (GitHub Pages, rebuilt on every push to `main`). See `CLAUDE.md` for current status.
 
 **BRIC.News** is a continuously updated Columbus, Ohio real estate investor resource hub. It publishes local policy updates, market data, development news, a curated vendor directory, and a resource hub pulling together the municipal, county, and legal references investors reach for repeatedly.
 
@@ -15,7 +15,7 @@ BRIC.News is positioned as an independent publication. It takes no sponsorships 
 - **`src/`** — the Astro site (homepage, section pages, per-city hubs, vendor directory, resource hub, about page).
 - **`src/content/`** — Markdown collections (items, vendors, cities, resources) and their schemas.
 - **`scripts/`** — Python pipeline: tiered RSS/Google News ingest (`supplemental_ingest.py` + `supplemental_sources.yaml`), weekly Beehiiv draft builder. `review.py` is the retired local review tool.
-- **`.github/workflows/`** — daily feed (opens a PR, or commits to main after the review period), manual Cloudflare Workers deploy, manual newsletter draft.
+- **`.github/workflows/`** — daily feed (opens a PR, or commits to main after the review period), GitHub Pages preview publish, manual newsletter draft.
 
 ---
 
@@ -25,28 +25,31 @@ BRIC.News is positioned as an independent publication. It takes no sponsorships 
 |---|---|
 | Framework | Astro 4 (static output) |
 | Styling | Tailwind CSS |
-| Hosting | Cloudflare Workers static assets (being re-homed; deploy is manual for now) |
+| Hosting | GitHub Pages (preview until launch) |
 | Source control | GitHub |
 | Content | Markdown in `src/content/` |
 | Ingest | Python 3.11+ |
 | AI | Anthropic Claude API (`claude-haiku-4-5` scores relevance, `claude-sonnet-5` writes summaries) |
 | Newsletter | Beehiiv (draft creation via API) |
-| Analytics | Cloudflare Web Analytics |
+| Analytics | none yet |
 
 Data flow:
 
 ```
-EVERY DAY 7:30 AM ET  (.github/workflows/daily-feed.yml)
-  scripts/supplemental_ingest.py
-    1. collect   every feed + Google News query in supplemental_sources.yaml
-                 (drop old, blocklisted, foreign, kill-pattern, already-seen)
-    2. score     Haiku rates each headline against its tier rubric
-    3. select    per tier: at/above the bar, best first, up to the daily cap
-    4. write     robots.txt -> fetch -> Sonnet rewrite -> quality gates
-                 -> markdown in src/content/items/
+DAILY (or every other day)
+  A scheduled Claude Code task on the publisher's Mac follows scripts/AGENT_RUN.md:
+    1. collect   scripts/supplemental_ingest.py --collect-json   (feeds + filters, no AI)
+    2. score     the Claude session rates each headline against its tier rubric
+    3. fetch     scripts/supplemental_ingest.py --fetch <url>    (robots, paywall, thin-page checks)
+    4. write     the session writes title / summary / detail / why-it-matters
+    5. gate      scripts/supplemental_ingest.py --write-items    (caps, dedupe, style rules -> markdown)
   -> before 2026-10-02: pull request "Daily feed: <date>" for review (merge = publish)
   -> after:             commits straight to main
-  -> deploy workflow (once hosting is set up)
+  -> GitHub Pages rebuilds the preview on every push to main
+
+  Optional API-key path: .github/workflows/daily-feed.yml runs the same
+  pipeline unattended on GitHub (Haiku scores, Sonnet writes). It skips with
+  a warning until ANTHROPIC_API_KEY is set.
 
 MONDAY (separate Claude skill, not in this repo)
   Crane policy email -> item-registry.json -> policy items
@@ -61,7 +64,7 @@ The BRIC publish skill (Monday-pipeline → BRIC queue) is **not** in this repo.
 
 ## Local dev setup
 
-**Prerequisites:** Node 20+, Python 3.11+, a Cloudflare account, a GitHub repo, an Anthropic API key, a Beehiiv publication.
+**Prerequisites:** Node 20+, Python 3.11+, an Anthropic API key (for the feed), a Beehiiv publication (for the newsletter, later).
 
 ### 1. Clone and install
 
@@ -155,23 +158,26 @@ Without Beehiiv credentials, the script writes `scripts/newsletter-preview.html`
 
 ## Deployment
 
-The site deploys to Cloudflare Workers static assets via `.github/workflows/deploy.yml`. It runs only when triggered by hand from the Actions tab, or on every push to `main` once the repository variable `DEPLOY_ON_PUSH` is set to `true`.
+Until launch the site is published to **GitHub Pages** by `.github/workflows/pages.yml` on every push to `main`:
+
+https://andrewmswensen-hue.github.io/bric-news/
+
+GitHub Pages serves project sites under `/bric-news/`, so the workflow runs `scripts/pages-base.mjs` after the build to prefix every root-relative link. Nothing in `src/` knows about the prefix; when the site moves to `bric.news`, delete that one step.
 
 Required repository secrets (GitHub → Settings → Secrets and variables → Actions):
 
-- `ANTHROPIC_API_KEY` — for the daily feed. Use a dedicated key with its own spend limit.
-- `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` — for deploys, once hosting is settled.
+- `ANTHROPIC_API_KEY` — only if you want the GitHub Action to run the feed instead of the scheduled Claude task. Use a dedicated key with its own spend limit.
 - `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID` — for the newsletter, once Beehiiv is connected.
 
-### DNS for `bric.news` (Spaceship)
+### Going live on `bric.news` (later)
 
-The domain is registered at Spaceship and currently parked. When hosting is ready: add the site to the Cloudflare account, point the nameservers at Cloudflare from the Spaceship DNS panel, then attach `bric.news` as a custom domain on the Workers project. Cloudflare issues the certificate automatically.
+The domain is registered at Spaceship and currently parked. GitHub Pages supports custom domains: add a `CNAME` record at Spaceship pointing `bric.news` at `andrewmswensen-hue.github.io`, set the custom domain in the repo's Pages settings, and remove the base-path step from `pages.yml`.
 
 ## Weekly operational flow
 
 | Day | Time | What happens | Your action |
 |---|---|---|---|
-| Every day | 7:30 AM ET | Daily feed workflow scores every source and opens a PR with the day's items (roughly 5-15) | Read the PR, merge (~5 min) |
+| Every day (or every other) | morning | Scheduled Claude task runs `scripts/AGENT_RUN.md` and opens a PR with the day's items (roughly 5-15) | Read the PR, merge (~5 min) |
 | Monday | 9 AM | Crane email → Monday skill → policy items via the registry | Review alongside the daily PR |
 | Friday | manual | Newsletter draft (once Beehiiv is connected) | Review & send (~15 min) |
 | Any time | — | Manual vendor/resource/city additions via markdown edits | Commit & push |
@@ -234,8 +240,8 @@ Run `npm run astro sync` or delete `.astro/` and try again. Most often this is a
 **Ingest script says `ANTHROPIC_API_KEY missing`.**
 Either `source .venv/bin/activate && export ANTHROPIC_API_KEY=...` or put the key in `.env` and use a tool like `dotenv-cli` or `direnv`. Alternatively run with `--dry-run` to test without any API call.
 
-**The daily feed workflow fails immediately.**
-Almost always the missing `ANTHROPIC_API_KEY` secret (exit code 2 in the log). Add it under GitHub → Settings → Secrets and variables → Actions and re-run the workflow.
+**The daily feed workflow shows a warning and does nothing.**
+That is expected without the `ANTHROPIC_API_KEY` secret; the scheduled Claude task is the primary runner. Add the secret only if you want the Action to run the feed itself.
 
 **The daily feed opened a PR with nothing local in it.**
 Local sources are Google News queries plus the RLPM feed; on a quiet day they can all fall below the bar. Check the "Run stats" section of the PR body: `below_bar` and `killed` counts tell you whether items were found and rejected or never found at all.
@@ -250,7 +256,7 @@ Double-check `BEEHIIV_API_KEY` is a **Publication API Key** (not an account toke
 
 ## Decisions made during initial build
 
-- **Hosting deferred.** The original build deployed to a personal Cloudflare account; that deploy is frozen and the site will be re-homed on a role-owned account before launch. DNS for `bric.news` is documented above but not wired.
+- **Cloudflare dropped (Sep 2026).** The original build deployed to a personal Cloudflare account. That was removed; the site publishes to GitHub Pages until launch.
 - **Beehiiv embed is stubbed.** The homepage and `<NewsletterCTA />` component use a placeholder form posting to `subscribe.example.beehiiv.com`. When the Beehiiv publication is live, replace the two `data-beehiiv-placeholder` forms in `src/components/NewsletterCTA.astro` with the real embed code from Beehiiv → Website → Forms → Embed. The newsletter-drafting backend (`scripts/newsletter.py`) is already wired to the Beehiiv API and expects `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID`.
 - **`@astrojs/sitemap` was removed.** The plugin conflicted with a build-hook change in Astro 4.15. Sitemap generation can be re-added later (or generated from a custom Astro endpoint) — not launch-blocking.
 - **Sitemap and RSS added Sep 2026** at `/sitemap.xml` and `/rss.xml`.

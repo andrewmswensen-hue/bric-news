@@ -16,10 +16,10 @@ Management, see `/about#partners`).
 | Thing | Status |
 |---|---|
 | GitHub repo | `andrewmswensen-hue/bric-news` (personal account, private). Transferred from the `bric-news` org on 2026-09-01. |
-| Live site | https://bric-news-site.andrew-m-swensen.workers.dev — old Cloudflare Workers deploy on a personal account. **Not being updated.** Hosting will be re-done before public launch. |
+| Preview site | https://andrewmswensen-hue.github.io/bric-news/ — GitHub Pages, rebuilt on every push to `main` by `pages.yml`. The old Cloudflare deploy was removed on 2026-09-01; nothing Cloudflare remains. |
 | Domain `bric.news` | Registered at Spaceship, still on their parking page. Not connected. |
-| Daily feed | `.github/workflows/daily-feed.yml`, 7:30 AM ET. **Needs the `ANTHROPIC_API_KEY` repository secret before it can run.** |
-| Deploy workflow | `.github/workflows/deploy.yml`, manual-only until hosting is settled (or set repo variable `DEPLOY_ON_PUSH=true`). |
+| Daily feed | **Primary:** a scheduled Claude Code task on the publisher's Mac follows `scripts/AGENT_RUN.md` (runs on the Claude plan, no API key). **Optional:** `.github/workflows/daily-feed.yml` does the same with API calls; it skips with a warning until `ANTHROPIC_API_KEY` is set. |
+| Publish workflow | `.github/workflows/pages.yml`. Builds, prefixes links with `/bric-news/` (`scripts/pages-base.mjs`), deploys to Pages. |
 | Newsletter | `scripts/newsletter.py` + manual-only workflow. Beehiiv not connected. Signup form on the site is still a placeholder. |
 
 To build and preview locally:
@@ -49,10 +49,17 @@ npm install && npm run build && npm run preview
    detail / why-it-matters, reject generic why-it-matters lines, dedupe by
    fingerprint, write markdown into `src/content/items/`.
 
-The workflow then opens a **pull request** (`feed/YYYY-MM-DD`) with every
+Either runner then opens a **pull request** (`feed/YYYY-MM-DD`) with every
 item summarized in the PR body. Merge it to publish. After
 `settings.review_required_until` (2026-10-02) it commits to main directly.
 `scripts/state.json` is the dedupe ledger and is committed on every run.
+
+**Two runners, same rules.** The API path (`daily-feed.yml`) calls Haiku and
+Sonnet directly. The agent path (`scripts/AGENT_RUN.md`) is the same
+pipeline broken into `--collect-json`, `--fetch`, and `--write-items` so a
+Claude Code session does the scoring and writing itself. Caps, kill
+patterns, generic-why rejection, dedupe, robots, and paywall checks live in
+the script and apply to both.
 
 Test without spending anything:
 
@@ -95,7 +102,7 @@ shows "Source link pending" for those.
 ## Stack
 
 Astro 4 (static) · Tailwind · Markdown content · Python 3.12 pipeline ·
-Anthropic API (Haiku scores, Sonnet writes) · GitHub Actions · Beehiiv (later).
+Anthropic API (Haiku scores, Sonnet writes) · GitHub Actions · GitHub Pages · Beehiiv (later).
 
 ## Brand
 
@@ -111,13 +118,12 @@ management company named in items unless it is the news.
 
 ## Open items, in priority order
 
-1. Add `ANTHROPIC_API_KEY` as a GitHub Actions secret, then run the
-   "Daily feed" workflow by hand once and read the PR it opens.
-2. Decide hosting (new Cloudflare account on a role email is the plan),
-   set the Cloudflare secrets, flip `DEPLOY_ON_PUSH`.
-3. Connect `bric.news` (nameservers to Cloudflare).
-4. Replace the placeholder Beehiiv form; connect the newsletter workflow.
-5. Ask Columbus Underground and Columbus Business First for feed permission
+1. Create the scheduled Claude task (see `scripts/AGENT_RUN.md`) and read
+   the first PR it opens. (Or add `ANTHROPIC_API_KEY` and use the Action.)
+2. Connect `bric.news` when ready: CNAME at Spaceship → `andrewmswensen-hue.github.io`,
+   custom domain in Pages settings, drop the base-path step in `pages.yml`.
+3. Replace the placeholder Beehiiv form; connect the newsletter workflow.
+4. Ask Columbus Underground and Columbus Business First for feed permission
    (both 403 automated access; they are blocklisted until then).
-6. Hand-verify replacement feed URLs for HUD, FHFA, WOSU, the Dispatch.
-7. UI refresh pass once real feed content is flowing.
+5. Hand-verify replacement feed URLs for HUD, FHFA, WOSU, the Dispatch.
+6. UI refresh pass once real feed content is flowing.

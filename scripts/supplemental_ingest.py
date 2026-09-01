@@ -859,6 +859,202 @@ def write_item(rec: dict) -> Path:
 
 
 # -----------------------------------------------------------------------------
+# Agent mode
+#
+# The same pipeline, driven step by step by a Claude Code session instead of
+# API calls, so the daily run can use the publisher's Claude plan rather than
+# an API key. The session does the judgment (scoring, writing); this file
+# still enforces every rule (caps, kill patterns, generic why-it-matters,
+# dedupe, robots, paywalls). See scripts/AGENT_RUN.md for the procedure.
+#
+#   --collect-json PATH      collect + filter, write candidates JSON, no AI
+#   --fetch URL              print the extracted article body as JSON
+#   --write-items PATH       take the session's written records, gate, write
+#                            markdown, update the ledger, write the run report
+# -----------------------------------------------------------------------------
+
+def agent_collect(cfg: Config, state: dict, out_path: Path, only_source: str | None, only_tier: str | None, mode: str) -> int:
+    candidates, stats = collect_candidates(cfg, state, only_source, only_tier)
+    today = date.today().isoformat()
+    daily = state.get("daily_counts", {}).get(today, {})
+    payload = {
+        "date": today,
+        "mode": mode,
+        "prompt_version": PROMPT_VERSION,
+        "tiers": {
+            name: {
+                "min_score": t.min_score,
+                "daily_cap": t.daily_cap,
+                "open_slots": max(0, t.daily_cap - int(daily.get(name, 0))),
+                "rubric": TIER_RUBRICS.get(name, TIER_RUBRICS["local"]),
+            }
+            for name, t in cfg.tiers.items()
+        },
+        "scorer_instructions": SYSTEM_PROMPT_SCORER,
+        "writer_instructions": SYSTEM_PROMPT_WRITER,
+        "candidates": [
+            {
+                "id": i,
+                "tier": c.tier,
+                "min_score": c.min_score_override or cfg.tiers[c.tier].min_score,
+                "title": c.title,
+                "url": c.url,
+                "source_domain": c.source_domain,
+                "publisher_name": c.publisher_name,
+                "published_at": c.published_at.date().isoformat(),
+                "source_id": c.source.id,
+                "category_hint": c.source.category,
+                "partner": c.partner,
+                "snippet": c.snippet,
+                "has_feed_body": bool(c.feed_body),
+                "feed_body": c.feed_body if c.partner else "",
+            }
+            for i, c in enumerate(candidates)
+        ],
+        "stats": stats,
+    }
+    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
+    log(f"[collect] {len(candidates)} candidates written to {out_path}")
+    for name, t in payload["tiers"].items():
+        n = sum(1 for c in candidates if c.tier == name)
+        log(f"  {name:9s} bar {t['min_score']}  open slots {t['open_slots']}  candidates {n}")
+    return 0
+
+
+def agent_fetch(cfg: Config, url: str) -> int:
+    domain = safe_domain(url)
+    result: dict[str, Any] = {"url": url, "ok": False, "reason": "", "chars": 0, "body": ""}
+    if domain_matches(domain, cfg.blocklist):
+        result["reason"] = "blocklisted domain"
+    else:
+        robots_cache: dict[str, Any] = {}
+        partner = PARTNER_DOMAINS.get(domain)
+        if not partner and not robots_allowed(url, robots_cache):
+            result["reason"] = "robots.txt disallows"
+        else:
+            with httpx.Client() as http:
+                body, _ = fetch_body(http, url)
+            if not body:
+                result["reason"] = "fetch failed"
+            elif len(body) < PAYWALL_BODY_CHAR_THRESHOLD and "subscribe" in body.lower():
+                result["reason"] = "paywall"
+            elif len(body) < cfg.settings.min_body_chars:
+                result["reason"] = f"thin page ({len(body)} chars)"
+            else:
+                result.update(ok=True, chars=len(body), body=body[:9000])
+    print(json.dumps(result, ensure_ascii=False))
+    return 0 if result["ok"] else 1
+
+
+def agent_write(cfg: Config, state: dict, items_path: Path, seen_path: Path | None, mode: str, model_name: str) -> int:
+    """Gate and write records the session produced. Same rules as the API path."""
+    try:
+        records = json.loads(items_path.read_text())
+    except Exception as e:
+        log(f"[err] cannot read {items_path}: {e}")
+        return 1
+    if isinstance(records, dict):
+        records = records.get("items", [])
+
+    known_fps = set(state.get("seen_fingerprints", [])) | load_existing_fingerprints() | load_registry_fingerprints()
+    seen_urls = set(state.get("seen_urls", []))
+    today = date.today().isoformat()
+    daily = state.setdefault("daily_counts", {}).setdefault(today, {})
+    stats = {"submitted": len(records), "published": 0, "why_generic": 0, "dupe_fp": 0, "below_bar": 0, "cap": 0, "invalid": 0}
+    published: list[dict] = []
+
+    # Best first, so caps are filled by the strongest items.
+    records.sort(key=lambda r: -int(r.get("relevance_score", 0) or 0))
+
+    for r in records:
+        tier_name = r.get("tier") if r.get("tier") in cfg.tiers else "local"
+        tier = cfg.tiers[tier_name]
+        required = ("title", "summary", "detail", "why_it_matters", "url", "source_domain", "published_at")
+        if any(not r.get(k) for k in required):
+            stats["invalid"] += 1
+            log(f"[invalid] missing fields: {r.get('title', '?')[:60]}")
+            continue
+        score = int(r.get("relevance_score", 0) or 0)
+        bar = int(r.get("min_score") or tier.min_score)
+        if score < bar:
+            stats["below_bar"] += 1
+            log(f"[low] {score} < {bar}: {r['title'][:60]}")
+            continue
+        if int(daily.get(tier_name, 0)) >= tier.daily_cap:
+            stats["cap"] += 1
+            log(f"[cap] {tier_name} full: {r['title'][:60]}")
+            continue
+        why = scrub_style(str(r["why_it_matters"]).strip())
+        if why_is_generic(why, int(r.get("why_specificity", 3) or 3)):
+            stats["why_generic"] += 1
+            log(f"[why-generic] {r['title'][:60]} :: {why[:70]}")
+            continue
+        munis = [m for m in r.get("municipalities", []) if m in MUNICIPALITIES] if tier_name == "local" else []
+        title = scrub_style(str(r["title"]).strip())[:120]
+        fp = make_fingerprint(title, munis)
+        if fp in known_fps:
+            stats["dupe_fp"] += 1
+            log(f"[dupe-fp] {title[:60]}")
+            continue
+        content_type = r.get("content_type") if r.get("content_type") in CONTENT_TYPES else "news"
+        domain = safe_domain(r["url"]) or str(r["source_domain"])
+        partner = r.get("partner") or PARTNER_DOMAINS.get(domain)
+        rec = {
+            "title": title,
+            "summary": trim_to_limit(scrub_style(str(r["summary"])), 600),
+            "detail": trim_to_limit(scrub_style(str(r["detail"])), 2000),
+            "why_it_matters": why,
+            "source_url": normalize_url(str(r["url"])),
+            "source_domain": domain,
+            "source_name": str(r.get("source_name") or r.get("publisher_name") or domain).strip(),
+            "published_at": str(r["published_at"])[:10],
+            "scope": tier_name,
+            "topics": [t for t in r.get("topics", []) if t in TOPICS][:5],
+            "municipalities": munis,
+            "content_type": content_type,
+            "entities": [e for e in r.get("entities", []) if isinstance(e, str)][:8],
+            "partner": partner,
+            "fingerprint": fp,
+            "risk_flags": [x for x in r.get("risk_flags", []) if isinstance(x, str)][:5],
+            "relevance_score": max(1, min(10, score)),
+            "ingested_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "ingest_model": model_name,
+            "ingest_prompt_version": PROMPT_VERSION,
+            "ingest_source_id": str(r.get("source_id", "agent")),
+        }
+        try:
+            path = write_item(rec)
+        except Exception as e:
+            stats["invalid"] += 1
+            log(f"[write-error] {title[:60]}: {e}")
+            continue
+        known_fps.add(fp)
+        seen_urls.add(rec["source_url"])
+        daily[tier_name] = int(daily.get(tier_name, 0)) + 1
+        rec["file"] = str(path.relative_to(REPO_ROOT))
+        published.append(rec)
+        stats["published"] += 1
+        log(f"[published] {tier_name:8s} {score:2d} {path.name}")
+
+    # Everything the session looked at counts as seen, published or not.
+    if seen_path and seen_path.exists():
+        try:
+            cand = json.loads(seen_path.read_text()).get("candidates", [])
+            for c in cand:
+                if c.get("url"):
+                    seen_urls.add(c["url"])
+            stats["marked_seen"] = len(cand)
+        except Exception:
+            pass
+    state["seen_urls"] = sorted(seen_urls)
+    state["seen_fingerprints"] = sorted(known_fps)
+    save_state(state)
+    write_run_report(mode, published, stats, None, dry_run=False)
+    log(f"[done] {len(published)} published, report in {LAST_RUN_MD.name}")
+    return 0
+
+
+# -----------------------------------------------------------------------------
 # Main
 # -----------------------------------------------------------------------------
 
@@ -934,6 +1130,11 @@ def main() -> int:
     ap.add_argument("--tier", choices=SCOPES, help="Run a single tier")
     ap.add_argument("--mode", choices=["review", "auto"], help="Override review/auto decision")
     ap.add_argument("--max-age-days", type=int, help="Override settings.max_age_days")
+    ap.add_argument("--collect-json", metavar="PATH", help="Agent mode: collect + filter, write candidates JSON, no AI")
+    ap.add_argument("--fetch", metavar="URL", help="Agent mode: print the extracted article body as JSON")
+    ap.add_argument("--write-items", metavar="PATH", help="Agent mode: gate and write the session's records")
+    ap.add_argument("--mark-seen", metavar="PATH", help="With --write-items: candidates JSON whose URLs count as seen")
+    ap.add_argument("--model-name", default="claude-code-session", help="Recorded as ingest_model in agent mode")
     args = ap.parse_args()
 
     if not SOURCES_PATH.exists():
@@ -945,6 +1146,14 @@ def main() -> int:
     mode = decide_mode(cfg, args.mode)
 
     state = load_state()
+
+    if args.fetch:
+        return agent_fetch(cfg, args.fetch)
+    if args.collect_json:
+        return agent_collect(cfg, state, Path(args.collect_json), args.source, args.tier, mode)
+    if args.write_items:
+        return agent_write(cfg, state, Path(args.write_items), Path(args.mark_seen) if args.mark_seen else None, mode, args.model_name)
+
     known_fps = set(state.get("seen_fingerprints", [])) | load_existing_fingerprints() | load_registry_fingerprints()
     today = date.today().isoformat()
     daily = state.setdefault("daily_counts", {}).setdefault(today, {})
