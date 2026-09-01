@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { itemPayload } from '../lib/itemPayload';
 
 interface Props {
   item: CollectionEntry<'items'>;
@@ -7,29 +8,26 @@ interface Props {
 }
 
 const { item, showPolicyBadge = false } = Astro.props;
-const d = item.data;
+const p = itemPayload(item);
 
-const dateStr = d.published_at.toLocaleDateString('en-US', {
-  month: 'short', day: 'numeric', year: 'numeric',
-});
-
-const truncated = d.summary.length > 240 ? d.summary.slice(0, 237).trimEnd() + '…' : d.summary;
-const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
-
-const isPolicy = d.content_type === 'policy';
-const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
-// Policy items: headline is editorial voice, never a link. Source lives in its
-// own button below. News items: if we have a real URL, the title IS the article
-// title and should link to it.
-const linkTitle = !isPolicy && isRealSource;
+const truncated = p.summary.length > 240 ? p.summary.slice(0, 237).trimEnd() + '…' : p.summary;
+const faviconSrc = `https://www.google.com/s2/favicons?domain=${p.sourceDomain}&sz=32`;
+const showScope = p.scope !== 'local';
 ---
 
-<article class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col">
-  {showPolicyBadge && (
-    <span class="badge-policy absolute top-4 right-4">POLICY</span>
-  )}
+<article
+  class="relative bg-bone-2 border border-rule p-5 h-full flex flex-col"
+  data-item-card
+  data-slug={p.slug}
+  data-item={JSON.stringify(p)}
+>
+  <div class="absolute top-4 right-4 flex items-center gap-1.5">
+    {showPolicyBadge && <span class="badge-policy">Policy</span>}
+    {showScope && <span class="chip-scope">{p.scopeLabel}</span>}
+    {p.partner && <span class="chip-partner">Partner</span>}
+  </div>
 
-  <div class="flex flex-wrap items-center gap-2 text-xs text-slate mb-3 pr-16">
+  <div class="flex flex-wrap items-center gap-2 text-xs text-slate mb-3 pr-24">
     <img
       src={faviconSrc}
       alt=""
@@ -39,47 +37,31 @@ const linkTitle = !isPolicy && isRealSource;
       loading="lazy"
       onerror="this.style.display='none'"
     />
-    <span class="uppercase tracking-wider">{d.source_domain}</span>
+    <span class="uppercase tracking-wider">{p.partner ? p.partner.name : p.sourceName}</span>
     <span aria-hidden="true">·</span>
-    <span>{dateStr}</span>
+    <span>{p.dateLabel}</span>
   </div>
 
   <h3 class="font-heading font-bold text-lg leading-snug mb-2">
-    {linkTitle ? (
-      <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
-        {d.title}
-      </a>
-    ) : (
-      <span class="text-charcoal">{d.title}</span>
-    )}
+    <a href={`#item=${p.slug}`} aria-haspopup="dialog" class="text-charcoal hover:text-brick no-underline">
+      {p.title}
+    </a>
   </h3>
 
   <p class="text-sm text-charcoal leading-relaxed mb-3">{truncated}</p>
 
-  {d.why_it_matters && (
+  {p.why && (
     <p class="text-sm text-slate italic border-l-2 border-brick pl-3 mb-4">
       <span class="not-italic font-medium text-brick uppercase tracking-wider text-xs mr-1">Why it matters:</span>
-      {d.why_it_matters}
+      {p.why}
     </p>
   )}
 
   <div class="mt-auto pt-2 flex flex-wrap items-center justify-between gap-3">
     <div class="flex flex-wrap gap-1.5">
-      {d.topics.slice(0, 3).map(t => <span class="chip">{t}</span>)}
-      {d.municipalities.slice(0, 2).map(m => <span class="chip">{m.replace(/-/g, ' ')}</span>)}
+      {p.topics.slice(0, 3).map((t) => <span class="chip">{t}</span>)}
+      {p.municipalities.slice(0, 2).map((m) => <span class="chip">{m.replace(/-/g, ' ')}</span>)}
     </div>
-    {isRealSource && isPolicy && (
-      <a
-        href={d.source_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-xs font-medium text-brick no-underline hover:underline whitespace-nowrap"
-      >
-        View source →
-      </a>
-    )}
-    {!isRealSource && (
-      <span class="text-xs italic text-slate whitespace-nowrap">Source pending</span>
-    )}
+    <span class="read-more" aria-hidden="true">Read more →</span>
   </div>
 </article>

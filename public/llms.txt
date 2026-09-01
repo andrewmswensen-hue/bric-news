@@ -12,6 +12,12 @@ Five non-overlapping content types, each with its own section:
 - **Resources** (`/resources`) — Government portals, tax payment sites, court records, market data sources, and event calendars for Columbus investors.
 - **Guides** (`/guides`) — Evergreen how-to articles for Columbus investors and landlords.
 
+## How items are produced
+
+BRIC is a pointer, not a republisher. Each item is an original summary written from the facts in a publisher's reporting, a "why it matters" line for Columbus investors, and a link to the original story with the publisher named. Items are gathered daily from publisher RSS feeds and news searches in three tiers (local Columbus metro, Ohio statewide, national), scored for relevance against a published rubric, drafted with AI assistance, and reviewed before publishing. BRIC honors robots.txt, skips paywalled sources, and removes any publisher that asks. Full policy: `/about#editorial`.
+
+Machine-readable feeds: `/rss.xml` (latest 50 items) and `/sitemap.xml`.
+
 ## Voice and editorial standards
 
 Every news and policy item follows a two-voice pattern:
@@ -33,9 +39,11 @@ Primary counties: Franklin, Delaware, Licking.
 - Vendors can request removal within seven days.
 - BRIC does not publish vendor reviews or star ratings.
 
-## Sponsorship disclosure
+## Sponsorship and partner disclosure
 
 BRIC.News accepts no sponsorship for news coverage. It is an independent publication.
+
+BRIC has an editorial partnership with RL Property Management (rlpmg.com), its Preferred property-management pick. With permission, educational posts from RL's blog are adapted into BRIC items, labeled "Partner" on the site, linked to the original, and kept out of top-story slots. Details: `/about#partners`.
 
 ## About the operator
 

@@ -1,72 +1,288 @@
-# BRIC.News supplemental ingest sources
-# All RSS feeds and Google News queries for non-policy content.
-# Policy items come from the Monday pipeline, not this file.
+# BRIC.News syndication sources (v2, Sep 2026)
+#
+# Every source belongs to exactly one tier. The tier sets the relevance bar
+# an item must clear and how many items that tier may publish per day, so a
+# busy national news day cannot crowd out local coverage.
+#
+# Every feed URL in this file was tested live on 2026-09-01. Sources that
+# returned 404 or actively blocked automated access (403) were left out on
+# purpose. See `blocklist_domains` at the bottom.
+#
+# Source types:
+#   rss_feed           - a publisher's own feed. Best quality, most reliable.
+#   google_news_query  - Google News search RSS. Links are resolved to the
+#                        original publisher before anything is stored, and the
+#                        publisher (not Google) gets the credit.
+
+version: 2
+
+settings:
+  # Ignore feed entries older than this. Keeps the site current and stops a
+  # first run from dumping a month of history.
+  max_age_days: 3
+  # Per source, per run. Prevents one chatty feed from flooding the candidate list.
+  max_items_per_source: 10
+  # Minimum extracted article length before we trust we read the substance.
+  min_body_chars: 400
+  # Items are written directly into src/content/items/. Until this date the
+  # workflow opens a pull request for review; after it, commits go straight
+  # to main. (Set by the publisher: human review mandatory for the first 30 days.)
+  review_required_until: 2026-10-02
+  # Front-page grid target. Anything published today beyond this many items
+  # still publishes, but renders in the "More from today" list, not the grid.
+  front_page_max: 18
+
+tiers:
+  national:
+    min_score: 8
+    daily_cap: 2
+  state:
+    min_score: 7
+    daily_cap: 3
+  regional:
+    min_score: 6
+    daily_cap: 3
+  local:
+    min_score: 5
+    daily_cap: 10
 
 sources:
-  # --- MARKET DATA ---
-  - type: rss_feed
-    url: https://www.fhfa.gov/AboutUs/Contact/Pages/News-Release-RSS.aspx
+  # ---------------------------------------------------------------- NATIONAL
+  - id: biggerpockets
+    label: BiggerPockets
+    type: rss_feed
+    url: https://www.biggerpockets.com/blog/feed
+    scope: national
+    category: news
+    notes: 250-item feed, mostly evergreen education. The bar does the filtering.
+
+  - id: multifamily-dive
+    label: Multifamily Dive
+    type: rss_feed
+    url: https://www.multifamilydive.com/feeds/news/
+    scope: national
+    category: news
+
+  - id: naa
+    label: National Apartment Association
+    type: rss_feed
+    url: https://www.naahq.org/rss.xml
+    scope: national
+    category: policy
+
+  - id: bisnow
+    label: Bisnow
+    type: rss_feed
+    url: https://www.bisnow.com/rss
+    scope: national
+    category: news
+    notes: Commercial-heavy. Expect most items to fall below the bar.
+
+  - id: gn-hud-fhfa
+    label: HUD and FHFA rule changes
+    type: google_news_query
+    query: '(HUD OR FHFA) (rule OR regulation) (landlords OR rental OR housing)'
+    scope: national
+    category: policy
+
+  - id: gn-section8
+    label: Housing voucher program changes
+    type: google_news_query
+    query: '("Section 8" OR "housing choice voucher") (landlords OR rule OR change)'
+    scope: national
+    category: policy
+
+  - id: gn-mortgage-monthly
+    label: Monthly mortgage rate roundups
+    type: google_news_query
+    query: '"mortgage rates" ("this month" OR monthly OR "past month" OR recap)'
+    scope: national
     category: market_data
-    label: FHFA News Releases
-  - type: google_news_query
-    query: "Columbus Ohio rent report"
+    notes: Monthly movement is in scope. Daily ticks are excluded by the scorer.
+
+  - id: gn-fair-housing
+    label: Fair housing enforcement
+    type: google_news_query
+    query: '"fair housing" (settlement OR ruling OR lawsuit) landlord'
+    scope: national
+    category: policy
+
+  - id: gn-screening-fcra
+    label: Tenant screening regulation
+    type: google_news_query
+    query: '"tenant screening" (rule OR FCRA OR "background check" OR regulation)'
+    scope: national
+    category: policy
+
+  # ------------------------------------------------------------------- STATE
+  - id: ohio-capital-journal
+    label: Ohio Capital Journal
+    type: rss_feed
+    url: https://ohiocapitaljournal.com/feed/
+    scope: state
+    category: news
+
+  - id: gn-ohio-landlord-tenant
+    label: Ohio landlord-tenant legislation
+    type: google_news_query
+    query: 'Ohio (landlord OR tenant OR eviction) (bill OR law OR "House Bill" OR "Senate Bill" OR statehouse)'
+    scope: state
+    category: policy
+
+  - id: gn-ohio-property-tax
+    label: Ohio property tax law
+    type: google_news_query
+    query: 'Ohio "property tax" (bill OR reform OR relief OR legislature OR statehouse)'
+    scope: state
+    category: policy
+
+  - id: gn-ohio-housing-policy
+    label: Ohio housing policy
+    type: google_news_query
+    query: 'Ohio (statehouse OR legislature OR "General Assembly") (housing OR zoning OR "rental registration")'
+    scope: state
+    category: policy
+
+  - id: gn-ohio-home-sales
+    label: Ohio home sales and price reports
+    type: google_news_query
+    query: 'Ohio ("home sales" OR "median price" OR "home prices") report'
+    scope: state
     category: market_data
+    notes: Weekly and monthly statewide stats are in scope per the publisher.
+
+  - id: gn-ohio-court-rulings
+    label: Ohio court rulings on housing
+    type: google_news_query
+    query: '"Ohio Supreme Court" (eviction OR landlord OR zoning OR "property tax" OR housing)'
+    scope: state
+    category: policy
+
+  # ------------------------------------------------------------------- LOCAL
+  - id: rlpm-blog
+    label: RL Property Management
+    type: rss_feed
+    url: https://www.rlpmg.com/feed/
+    scope: local
+    category: news
+    partner: rlpm
+    min_score: 6
+    notes: >
+      Partner content. Republished with the publisher's permission, rewritten
+      in BRIC voice, labeled as partner content on the site. Slightly higher
+      bar so only educational posts come through, not company announcements.
+
+  - id: gn-columbus-rent
     label: Columbus rent reports
-  - type: google_news_query
-    query: "Columbus Ohio housing market"
+    type: google_news_query
+    query: 'Columbus Ohio ("rent report" OR "rent prices" OR "average rent" OR "rents")'
+    scope: local
     category: market_data
-    label: Columbus housing market
-  - type: google_news_query
-    query: "Franklin County property tax"
+
+  - id: gn-columbus-home-sales
+    label: Columbus home sales and prices
+    type: google_news_query
+    query: 'Columbus Ohio ("home sales" OR "median home price" OR "housing market" OR "home prices")'
+    scope: local
     category: market_data
-    label: Franklin County property tax
+    notes: Weekly and monthly metro stats are in scope per the publisher.
 
-  # --- LOCAL BUSINESS NEWS ---
-  - type: rss_feed
-    url: https://www.dispatch.com/news/business/?format=rss
-    category: news
-    label: Columbus Dispatch Business
-  - type: google_news_query
-    query: "Columbus Business First real estate"
-    category: news
-    label: Columbus Business First real estate
-  - type: google_news_query
-    query: "Columbus Ohio development"
-    category: news
-    label: Columbus development
+  - id: gn-franklin-property-tax
+    label: Franklin County property tax and reappraisal
+    type: google_news_query
+    query: '"Franklin County" Ohio ("property tax" OR reappraisal OR auditor OR valuation)'
+    scope: local
+    category: policy
 
-  # --- EVENTS ---
-  - type: google_news_query
-    query: "Central Ohio REIA meeting"
-    category: event
+  - id: gn-columbus-council-zoning
+    label: Columbus council, zoning, and rental rules
+    type: google_news_query
+    query: '"Columbus City Council" (zoning OR rental OR "code enforcement" OR ordinance OR housing)'
+    scope: local
+    category: policy
+
+  - id: gn-columbus-development
+    label: Columbus development and construction
+    type: google_news_query
+    query: 'Columbus Ohio (apartments OR rezoning OR "mixed-use" OR "housing development") (approved OR proposed OR plans)'
+    scope: local
+    category: news
+
+  - id: gn-suburbs-policy
+    label: Suburban council and zoning actions
+    type: google_news_query
+    query: 'Ohio (Dublin OR Westerville OR Hilliard OR Gahanna OR Worthington OR "Grove City" OR "Upper Arlington" OR Bexley OR Reynoldsburg) (council OR zoning OR ordinance OR rental OR housing)'
+    scope: local
+    category: policy
+
+  - id: gn-delaware-licking
+    label: Delaware and Licking County property
+    type: google_news_query
+    query: 'Ohio ("Delaware County" OR "Licking County") (zoning OR development OR "property tax" OR housing OR rezoning)'
+    scope: local
+    category: news
+
+  - id: gn-columbus-eviction-courts
+    label: Franklin County eviction and court practice
+    type: google_news_query
+    query: '"Franklin County" Ohio (eviction OR "municipal court") (landlord OR tenant)'
+    scope: local
+    category: policy
+
+  - id: gn-reia
     label: Central Ohio REIA
-  - type: google_news_query
-    query: "BIA Central Ohio event"
+    type: google_news_query
+    query: '("Central Ohio REIA" OR "Columbus REIA" OR "real estate investors association" Columbus)'
+    scope: local
     category: event
-    label: BIA Central Ohio
 
-  # --- FEDERAL / STATE ---
-  - type: rss_feed
-    url: https://www.hud.gov/rss
+  - id: gn-bia
+    label: BIA of Central Ohio
+    type: google_news_query
+    query: '("BIA of Central Ohio" OR "Building Industry Association of Central Ohio")'
+    scope: local
+    category: event
+
+  - id: gn-columbus-utilities
+    label: Columbus utility rates and assessments
+    type: google_news_query
+    query: 'Columbus Ohio (water OR sewer OR electric OR utility) ("rate increase" OR rates OR assessment)'
+    scope: local
     category: news
-    label: HUD News
-  - type: google_news_query
-    query: "Ohio landlord tenant law"
-    category: news
-    label: Ohio landlord tenant
 
-  # --- COUNTY DATA ---
-  - type: google_news_query
-    query: "Franklin County Auditor"
-    category: market_data
-    label: Franklin County Auditor
-  - type: google_news_query
-    query: "Delaware County Ohio property"
-    category: market_data
-    label: Delaware County property
+# Publishers that refuse automated access or paywall their content. Items
+# from these domains are dropped before any fetch. Getting them back on the
+# list requires a written OK from the publisher, never a workaround.
+blocklist_domains:
+  - columbusunderground.com   # 403 to bots (tested 2026-09-01). Ask for permission.
+  - bizjournals.com           # Columbus Business First: 403 + paywall.
+  - wsj.com
+  - ft.com
+  - nytimes.com
+  - bloomberg.com
+  - economist.com
+  - theathletic.com
+  # Wire services and press-release distributors. Marketing copy, not news.
+  - prnewswire.com
+  - businesswire.com
+  - globenewswire.com
+  - einpresswire.com
+  - prweb.com
+  - newswire.com
+  # Syndication mirrors. We always link to the original publisher instead.
+  - msn.com
+  - yahoo.com
+  - financialcontent.com   # press-release syndication
+  - hoodline.com           # automated rewrites of other outlets
+  - ad-hoc-news.de
+  - flipboard.com
+  - ground.news
+  - newsbreak.com
 
-# TODO: Verify and add direct RSS feeds for the following when URLs confirmed:
-# - Columbus Business First (paywall check needed)
-# - Central Ohio REIA events page
-# - Franklin County Auditor announcements page
-# - City of Columbus news feed
+# Sources that did not have a working feed on 2026-09-01. Revisit by hand.
+#   FHFA news releases         - old RSS URL 404s after site redesign
+#   Columbus Dispatch          - Gannett dropped ?format=rss
+#   HUD                        - /rss returns an HTML page
+#   WOSU / Statehouse News     - feed URL not found
+#   Ohio Legislature           - no public feed; needs a bill-tracking service
+#   Axios Columbus, Spectrum   - no feed; covered by Google News queries above

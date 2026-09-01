@@ -1,0 +1,344 @@
+---
+/**
+ * The pop-up detail view for feed items. Included once in BaseLayout.
+ *
+ * Cards carry their full payload in a `data-item` attribute (see
+ * src/lib/itemPayload.ts). Clicking anywhere on a card, or pressing Enter on
+ * it, opens this dialog with the fuller summary and a link out to the
+ * original story. The URL gains `#item=<slug>` while open, so a reader can
+ * share a direct link to any item.
+ */
+---
+
+<dialog id="item-detail" class="item-detail" aria-labelledby="item-detail-title">
+  <div class="id-inner">
+    <div class="id-head">
+      <div class="id-badges">
+        <span data-f="type" class="badge-policy"></span>
+        <span data-f="scope" class="chip-scope"></span>
+        <span data-f="partner" class="chip-partner">Partner content</span>
+      </div>
+      <button type="button" class="id-close" data-close aria-label="Close">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+      </button>
+    </div>
+
+    <h2 id="item-detail-title" data-f="title" class="id-title"></h2>
+
+    <p class="id-meta">
+      <img data-f="favicon" alt="" width="14" height="14" class="rounded-sm" loading="lazy" />
+      <span data-f="source"></span>
+      <span aria-hidden="true">·</span>
+      <time data-f="date"></time>
+    </p>
+
+    <div data-f="detail" class="id-body"></div>
+
+    <p class="id-why">
+      <span class="id-why-label">Why it matters</span>
+      <span data-f="why"></span>
+    </p>
+
+    <div data-f="chips" class="id-chips"></div>
+
+    <div class="id-actions">
+      <a data-f="readlink" class="btn-primary" target="_blank" rel="noopener noreferrer"></a>
+      <a data-f="partnerlink" class="btn-secondary" target="_blank" rel="noopener noreferrer"></a>
+      <span data-f="pending" class="id-pending">Source link pending</span>
+    </div>
+
+    <p class="id-foot">
+      Summaries are written by BRIC from the publisher's reporting and reviewed before publishing.
+      <a href="/about#editorial">How BRIC works</a>
+    </p>
+  </div>
+</dialog>
+
+<style is:global>
+  /* ---- shared chips used by cards and the dialog ---- */
+  .chip-scope {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    border: 1px solid var(--charcoal);
+    padding: 1px 7px;
+    border-radius: 4px;
+    line-height: 1.5;
+  }
+  .chip-partner {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: #6B5410;
+    background: rgba(212, 175, 55, .22);
+    border: 1px solid rgba(212, 175, 55, .6);
+    padding: 1px 7px;
+    border-radius: 4px;
+    line-height: 1.5;
+  }
+
+  /* ---- cards become openable ---- */
+  [data-item-card] {
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  [data-item-card]:hover,
+  [data-item-card]:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px -14px rgba(31, 31, 31, .35);
+    border-color: #D6D0C4;
+  }
+  [data-item-card]:focus-visible {
+    outline: 2px solid var(--brick);
+    outline-offset: 2px;
+  }
+  .read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: .25rem;
+    font-size: .75rem;
+    font-weight: 600;
+    color: var(--brick);
+    white-space: nowrap;
+  }
+  [data-item-card]:hover .read-more { text-decoration: underline; }
+
+  /* ---- the dialog ---- */
+  .item-detail {
+    border: 1px solid var(--rule);
+    border-top: 4px solid var(--brick);
+    background: var(--bone-2);
+    color: var(--charcoal);
+    padding: 0;
+    width: min(680px, calc(100vw - 2rem));
+    max-height: min(88vh, 900px);
+    margin: auto;
+    box-shadow: 0 24px 60px -20px rgba(31, 31, 31, .45);
+  }
+  .item-detail::backdrop {
+    background: rgba(31, 31, 31, .55);
+  }
+  .item-detail[open] { animation: id-in .18s ease-out; }
+  @keyframes id-in {
+    from { opacity: 0; transform: translateY(8px) scale(.985); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .item-detail[open] { animation: none; }
+    [data-item-card] { transition: none; }
+    [data-item-card]:hover { transform: none; }
+  }
+  .id-inner {
+    padding: 1.5rem 1.75rem 1.5rem;
+    overflow-y: auto;
+    max-height: inherit;
+  }
+  @media (max-width: 640px) { .id-inner { padding: 1.25rem 1.1rem; } }
+  .id-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: .9rem;
+  }
+  .id-badges { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+  .id-badges [hidden] { display: none; }
+  .id-close {
+    color: var(--slate);
+    padding: .25rem;
+    margin: -.25rem -.35rem 0 0;
+    border-radius: 4px;
+    line-height: 0;
+  }
+  .id-close:hover { color: var(--brick); background: rgba(31,31,31,.05); }
+  .id-close:focus-visible { outline: 2px solid var(--brick); outline-offset: 2px; }
+  .id-title {
+    font-family: 'Montserrat Variable', Montserrat, ui-sans-serif, system-ui, sans-serif;
+    font-weight: 800;
+    font-size: clamp(1.25rem, 2.6vw, 1.6rem);
+    line-height: 1.2;
+    letter-spacing: -.015em;
+    margin: 0 0 .6rem;
+    text-wrap: balance;
+  }
+  .id-meta {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .75rem;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin: 0 0 1.1rem;
+  }
+  .id-body {
+    font-size: .975rem;
+    line-height: 1.65;
+    white-space: pre-line;
+    margin-bottom: 1.1rem;
+  }
+  .id-why {
+    border-left: 3px solid var(--brick);
+    padding: .15rem 0 .15rem .9rem;
+    font-size: .925rem;
+    line-height: 1.55;
+    color: var(--slate);
+    font-style: italic;
+    margin: 0 0 1.1rem;
+  }
+  .id-why-label {
+    display: inline-block;
+    font-style: normal;
+    font-weight: 600;
+    font-size: .7rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--brick);
+    margin-right: .4rem;
+  }
+  .id-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: 1.25rem; }
+  .id-chips:empty { display: none; }
+  .id-actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin-bottom: 1rem; }
+  .id-actions [hidden] { display: none; }
+  .id-pending { font-size: .8rem; font-style: italic; color: var(--slate); }
+  .id-foot {
+    border-top: 1px solid var(--rule);
+    padding-top: .75rem;
+    font-size: .72rem;
+    color: var(--slate);
+    margin: 0;
+  }
+</style>
+
+<script>
+  type Payload = {
+    slug: string; title: string; summary: string; detail: string; why: string;
+    sourceUrl: string; sourceName: string; sourceDomain: string; dateLabel: string;
+    scope: string; scopeLabel: string; contentType: string; typeLabel: string;
+    topics: string[]; municipalities: string[];
+    partner: { name: string; url: string; cta: string } | null;
+    realSource: boolean;
+  };
+
+  const dlg = document.getElementById('item-detail') as HTMLDialogElement | null;
+  if (dlg) {
+    const f = (name: string) => dlg.querySelector<HTMLElement>(`[data-f="${name}"]`)!;
+    let lastTrigger: HTMLElement | null = null;
+
+    function fill(p: Payload) {
+      const type = f('type');
+      type.textContent = p.typeLabel;
+      type.className = p.contentType === 'policy' ? 'badge-policy' : 'badge-news';
+
+      const scope = f('scope');
+      scope.textContent = p.scopeLabel;
+      scope.hidden = p.scope === 'local';
+
+      f('partner').hidden = !p.partner;
+      f('title').textContent = p.title;
+
+      const fav = f('favicon') as HTMLImageElement;
+      fav.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(p.sourceDomain)}&sz=32`;
+      fav.onerror = () => { fav.style.display = 'none'; };
+      fav.style.display = '';
+      f('source').textContent = p.partner ? p.partner.name : p.sourceName;
+      f('date').textContent = p.dateLabel;
+
+      f('detail').textContent = p.detail;
+      f('why').textContent = p.why;
+
+      const chips = f('chips');
+      chips.innerHTML = '';
+      [...p.topics, ...p.municipalities.map((m) => m.replace(/-/g, ' '))].forEach((t) => {
+        const s = document.createElement('span');
+        s.className = 'chip';
+        s.textContent = t;
+        chips.appendChild(s);
+      });
+
+      const read = f('readlink') as HTMLAnchorElement;
+      const partnerLink = f('partnerlink') as HTMLAnchorElement;
+      const pending = f('pending');
+      if (p.partner) {
+        read.hidden = !p.realSource;
+        read.href = p.sourceUrl;
+        read.textContent = `Read the original at ${p.partner.name} ↗`;
+        partnerLink.hidden = false;
+        partnerLink.href = p.partner.url;
+        partnerLink.textContent = `${p.partner.cta} →`;
+        pending.hidden = true;
+      } else if (p.realSource) {
+        read.hidden = false;
+        read.href = p.sourceUrl;
+        read.textContent = `Read the full story at ${p.sourceName} ↗`;
+        partnerLink.hidden = true;
+        pending.hidden = true;
+      } else {
+        read.hidden = true;
+        partnerLink.hidden = true;
+        pending.hidden = false;
+      }
+    }
+
+    function open(card: HTMLElement) {
+      let p: Payload;
+      try { p = JSON.parse(card.dataset.item || ''); } catch { return; }
+      fill(p);
+      lastTrigger = card;
+      if (!dlg.open) dlg.showModal();
+      dlg.querySelector<HTMLElement>('.id-inner')!.scrollTop = 0;
+      history.replaceState(null, '', `#item=${encodeURIComponent(p.slug)}`);
+    }
+
+    function close() {
+      if (dlg.open) dlg.close();
+    }
+
+    dlg.addEventListener('close', () => {
+      if (location.hash.startsWith('#item=')) history.replaceState(null, '', location.pathname + location.search);
+      lastTrigger?.focus();
+    });
+
+    // Click on the backdrop (outside the inner panel) closes.
+    dlg.addEventListener('click', (e) => {
+      const inner = dlg.querySelector('.id-inner');
+      if (e.target === dlg || (inner && !inner.contains(e.target as Node))) close();
+    });
+    dlg.querySelector('[data-close]')?.addEventListener('click', close);
+    // Native <dialog> closes on Escape via the cancel event; keep an explicit
+    // handler too so it never depends on browser quirks.
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && dlg.open) close(); });
+
+    // One delegated handler for every card on the page.
+    document.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement;
+      const card = target.closest<HTMLElement>('[data-item-card]');
+      if (!card) return;
+      // Internal navigation links inside a card (e.g. "More policy →") still navigate.
+      if (target.closest('a[data-nav]')) return;
+      e.preventDefault();
+      open(card);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const target = e.target as HTMLElement;
+      if (!target.matches('[data-item-card]')) return;
+      e.preventDefault();
+      open(target);
+    });
+
+    // Deep link: /news#item=<slug>
+    const m = location.hash.match(/^#item=(.+)$/);
+    if (m) {
+      const slug = decodeURIComponent(m[1]);
+      const card = document.querySelector<HTMLElement>(`[data-item-card][data-slug="${CSS.escape(slug)}"]`);
+      if (card) open(card);
+    }
+  }
+</script>

@@ -31,6 +31,28 @@ export const TOPICS = [
 
 export const CONTENT_TYPES = ['policy', 'news', 'market_data', 'event'] as const;
 
+// Geographic tier. Drives the relevance bar an item had to clear, the
+// section filters, and the scope pill on cards. Existing items default to
+// 'local' because everything published before Sep 2026 was Columbus-metro.
+export const SCOPES = ['local', 'regional', 'state', 'national'] as const;
+export const SCOPE_LABELS: Record<(typeof SCOPES)[number], string> = {
+  local: 'Columbus',
+  regional: 'Central Ohio',
+  state: 'Ohio',
+  national: 'National',
+};
+
+// Partner content: items rewritten (with permission) from a partner's own
+// publication. Rendered with a partner label and a CTA to the partner site.
+export const PARTNERS = {
+  rlpm: {
+    name: 'RL Property Management',
+    url: 'https://www.rlpmg.com',
+    cta: "Talk to BRIC's preferred Columbus property manager",
+  },
+} as const;
+export const PARTNER_KEYS = Object.keys(PARTNERS) as Array<keyof typeof PARTNERS>;
+
 export const VENDOR_CATEGORIES = [
   'real-estate-agents',
   'property-management',
@@ -82,6 +104,22 @@ const items = defineCollection({
     risk_flags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
     relevance_score: z.number().min(1).max(10).optional(),
+
+    // --- Added Sep 2026 for the tiered syndication feed ---
+    scope: z.enum(SCOPES).default('local'),
+    // Longer summary (150-250 words) shown in the pop-up detail view.
+    // Falls back to `summary` when absent.
+    detail: z.string().max(2000).optional(),
+    // Human-readable publisher name ("Ohio Capital Journal"). Falls back to source_domain.
+    source_name: z.string().optional(),
+    // Set when the item was rewritten from a partner's own publication.
+    partner: z.enum(['rlpm']).optional(),
+    // Audit trail written by the ingest pipeline.
+    ingested_at: z.coerce.date().optional(),
+    ingest_model: z.string().optional(),
+    ingest_prompt_version: z.string().optional(),
+    ingest_source_id: z.string().optional(),
+    approved_by: z.string().optional(),
   }),
 });
 

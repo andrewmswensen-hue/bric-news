@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { itemPayload } from '../lib/itemPayload';
 
 interface Props {
   item: CollectionEntry<'items'>;
@@ -8,28 +9,30 @@ interface Props {
 }
 
 const { item, variant, size = 'small' } = Astro.props;
-const d = item.data;
-const kind = variant ?? (d.content_type === 'policy' ? 'policy' : 'news');
+const p = itemPayload(item);
+const kind = variant ?? (p.contentType === 'policy' ? 'policy' : 'news');
 const isBig = size === 'big';
-
-const dateStr = d.published_at.toLocaleDateString('en-US', {
-  month: 'short', day: 'numeric',
-});
-
-const summary = isBig
-  ? (d.summary.length > 260 ? d.summary.slice(0, 257).trimEnd() + '…' : d.summary)
-  : (d.summary.length > 140 ? d.summary.slice(0, 137).trimEnd() + '…' : d.summary);
-
-const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
-
 const isPolicy = kind === 'policy';
-const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
-const linkTitle = !isPolicy && isRealSource;
+
+const dateShort = item.data.published_at.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const summary = isBig
+  ? (p.summary.length > 260 ? p.summary.slice(0, 257).trimEnd() + '…' : p.summary)
+  : (p.summary.length > 140 ? p.summary.slice(0, 137).trimEnd() + '…' : p.summary);
+
+const faviconSrc = `https://www.google.com/s2/favicons?domain=${p.sourceDomain}&sz=32`;
+const showScope = p.scope !== 'local';
 ---
 
-<article class={`bg-bone-2 border border-rule flex flex-col h-full ${isBig ? 'p-6 md:p-7' : 'p-4'}`}>
+<article
+  class={`bg-bone-2 border border-rule flex flex-col h-full ${isBig ? 'p-6 md:p-7' : 'p-4'}`}
+  data-item-card
+  data-slug={p.slug}
+  data-item={JSON.stringify(p)}
+>
   <div class={`flex items-center gap-2 ${isBig ? 'mb-4' : 'mb-2'}`}>
-    <span class={isPolicy ? 'badge-policy' : 'badge-news'}>{isPolicy ? 'Policy' : 'News'}</span>
+    <span class={isPolicy ? 'badge-policy' : 'badge-news'}>{isPolicy ? 'Policy' : p.typeLabel}</span>
+    {showScope && <span class="chip-scope">{p.scopeLabel}</span>}
+    {p.partner && <span class="chip-partner">Partner</span>}
     {isBig && (
       <>
         <span class="text-xs text-slate">·</span>
@@ -42,42 +45,26 @@ const linkTitle = !isPolicy && isRealSource;
           loading="lazy"
           onerror="this.style.display='none'"
         />
-        <span class="text-xs text-slate uppercase tracking-wider">{d.source_domain}</span>
+        <span class="text-xs text-slate uppercase tracking-wider">{p.partner ? p.partner.name : p.sourceName}</span>
       </>
     )}
     <span class={`text-xs text-slate ${isBig ? '' : 'ml-auto'}`}>
-      {isBig ? '· ' : ''}{dateStr}
+      {isBig ? '· ' : ''}{dateShort}
     </span>
   </div>
 
   <h3 class={`font-heading font-bold leading-snug mb-2 ${isBig ? 'text-xl md:text-2xl' : 'text-base'}`}>
-    {linkTitle ? (
-      <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
-        {d.title}
-      </a>
-    ) : (
-      <span class="text-charcoal">{d.title}</span>
-    )}
+    <a href={`#item=${p.slug}`} aria-haspopup="dialog" class="text-charcoal hover:text-brick no-underline">
+      {p.title}
+    </a>
   </h3>
 
   <p class={`text-charcoal leading-relaxed mb-3 ${isBig ? 'text-sm md:text-base' : 'text-xs'}`}>{summary}</p>
 
-  <div class={`mt-auto pt-2 flex items-center justify-between gap-3 text-xs`}>
-    <a
-      href={isPolicy ? '/policy' : '/news'}
-      class="text-slate hover:text-brick no-underline"
-    >
+  <div class="mt-auto pt-2 flex items-center justify-between gap-3 text-xs">
+    <a href={p.sectionHref} data-nav class="text-slate hover:text-brick no-underline">
       {isPolicy ? 'More policy →' : 'More news →'}
     </a>
-    {isPolicy && isRealSource && (
-      <a
-        href={d.source_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="text-brick font-medium no-underline hover:underline"
-      >
-        View source →
-      </a>
-    )}
+    <span class="read-more" aria-hidden="true">Read more →</span>
   </div>
 </article>

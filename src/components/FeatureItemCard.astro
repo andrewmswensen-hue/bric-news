@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import { itemPayload } from '../lib/itemPayload';
 
 interface Props {
   item: CollectionEntry<'items'>;
@@ -7,30 +8,32 @@ interface Props {
 }
 
 const { item, showPolicyBadge = false } = Astro.props;
-const d = item.data;
+const p = itemPayload(item);
 
-const dateStr = d.published_at.toLocaleDateString('en-US', {
-  month: 'long', day: 'numeric', year: 'numeric',
-});
+const dateLong = item.data.published_at.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 
 // First sentence as pull quote (truncated if long).
-const firstSentence = d.summary.split(/(?<=[.!?])\s+/)[0] || d.summary;
+const firstSentence = p.summary.split(/(?<=[.!?])\s+/)[0] || p.summary;
 const pullQuote = firstSentence.length > 200 ? firstSentence.slice(0, 197).trimEnd() + '…' : firstSentence;
 
-const faviconSrc = `https://www.google.com/s2/favicons?domain=${d.source_domain}&sz=32`;
-
-const isPolicy = d.content_type === 'policy';
-const isRealSource = !!d.source_url && !d.source_url.includes('example.com');
-const linkTitle = !isPolicy && isRealSource;
+const faviconSrc = `https://www.google.com/s2/favicons?domain=${p.sourceDomain}&sz=32`;
+const showScope = p.scope !== 'local';
 ---
 
-<article class="relative bg-bone-2 border border-rule overflow-hidden grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-6">
-  {showPolicyBadge && (
-    <span class="badge-policy absolute top-4 right-4 z-10">POLICY</span>
-  )}
+<article
+  class="relative bg-bone-2 border border-rule overflow-hidden grid grid-cols-1 md:grid-cols-3 gap-0 md:gap-6"
+  data-item-card
+  data-slug={p.slug}
+  data-item={JSON.stringify(p)}
+>
+  <div class="absolute top-4 right-4 z-10 flex items-center gap-1.5">
+    {showPolicyBadge && <span class="badge-policy">Policy</span>}
+    {showScope && <span class="chip-scope">{p.scopeLabel}</span>}
+    {p.partner && <span class="chip-partner">Partner</span>}
+  </div>
 
   <div class="md:col-span-2 p-6 md:p-8 flex flex-col">
-    <div class="flex items-center gap-2 text-xs text-slate mb-4 pr-16">
+    <div class="flex items-center gap-2 text-xs text-slate mb-4 pr-28">
       <img
         src={faviconSrc}
         alt=""
@@ -40,43 +43,30 @@ const linkTitle = !isPolicy && isRealSource;
         loading="lazy"
         onerror="this.style.display='none'"
       />
-      <span class="uppercase tracking-wider">{d.source_domain}</span>
+      <span class="uppercase tracking-wider">{p.partner ? p.partner.name : p.sourceName}</span>
       <span aria-hidden="true">·</span>
-      <span>{dateStr}</span>
+      <span>{dateLong}</span>
     </div>
 
     <h2 class="font-heading font-extrabold text-charcoal text-2xl md:text-3xl leading-tight mb-4">
-      {linkTitle ? (
-        <a href={d.source_url} target="_blank" rel="noopener noreferrer" class="text-charcoal hover:text-brick no-underline">
-          {d.title}
-        </a>
-      ) : (
-        <span>{d.title}</span>
-      )}
+      <a href={`#item=${p.slug}`} aria-haspopup="dialog" class="text-charcoal hover:text-brick no-underline">
+        {p.title}
+      </a>
     </h2>
 
-    <p class="text-base text-charcoal leading-relaxed mb-5">{d.summary}</p>
+    <p class="text-base text-charcoal leading-relaxed mb-5">{p.summary}</p>
 
-    {d.why_it_matters && (
+    {p.why && (
       <p class="text-base text-slate italic border-l-4 border-brick pl-4 mb-5">
         <span class="not-italic font-semibold text-brick uppercase tracking-wider text-xs mr-1">Why it matters:</span>
-        {d.why_it_matters}
+        {p.why}
       </p>
     )}
 
     <div class="mt-auto flex flex-wrap items-center gap-3">
-      {isRealSource && isPolicy && (
-        <a
-          href={d.source_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          class="btn-secondary text-sm"
-        >
-          View source document →
-        </a>
-      )}
-      {!isRealSource && (
-        <span class="text-xs italic text-slate">Source pending — reach out if you have the link</span>
+      <span class="read-more text-sm" aria-hidden="true">Read the full item →</span>
+      {!p.realSource && (
+        <span class="text-xs italic text-slate">Source link pending</span>
       )}
     </div>
   </div>
@@ -89,8 +79,8 @@ const linkTitle = !isPolicy && isRealSource;
     )}
 
     <div class="flex flex-wrap gap-1.5">
-      {d.topics.slice(0, 4).map(t => <span class="chip">{t}</span>)}
-      {d.municipalities.slice(0, 3).map(m => <span class="chip">{m.replace(/-/g, ' ')}</span>)}
+      {p.topics.slice(0, 4).map((t) => <span class="chip">{t}</span>)}
+      {p.municipalities.slice(0, 3).map((m) => <span class="chip">{m.replace(/-/g, ' ')}</span>)}
     </div>
   </div>
 </article>

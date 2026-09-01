@@ -1,0 +1,35 @@
+---
+/**
+ * Compact one-line item for the "More from the feed" list below the front
+ * grid. Opens the same pop-up detail view as a full card.
+ */
+import type { CollectionEntry } from 'astro:content';
+import { itemPayload } from '../lib/itemPayload';
+
+interface Props {
+  item: CollectionEntry<'items'>;
+  showPolicyBadge?: boolean;
+}
+
+const { item, showPolicyBadge = false } = Astro.props;
+const p = itemPayload(item);
+const dateShort = item.data.published_at.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+---
+
+<article
+  class="bg-bone-2 border border-rule px-4 py-3 flex flex-wrap items-baseline gap-x-3 gap-y-1"
+  data-item-card
+  data-slug={p.slug}
+  data-item={JSON.stringify(p)}
+>
+  <span class="text-xs text-slate tabular-nums w-14 shrink-0">{dateShort}</span>
+  <h3 class="font-heading font-semibold text-sm leading-snug flex-1 min-w-[12rem] m-0">
+    <a href={`#item=${p.slug}`} aria-haspopup="dialog" class="text-charcoal hover:text-brick no-underline">{p.title}</a>
+  </h3>
+  <span class="text-xs text-slate uppercase tracking-wider">{p.partner ? p.partner.name : p.sourceName}</span>
+  <span class="flex items-center gap-1.5">
+    {showPolicyBadge && <span class="badge-policy">Policy</span>}
+    {p.scope !== 'local' && <span class="chip-scope">{p.scopeLabel}</span>}
+    {p.partner && <span class="chip-partner">Partner</span>}
+  </span>
+</article>
