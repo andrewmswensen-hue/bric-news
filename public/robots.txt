@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
 
-# Sitemap (pending — add once generated)
-# Sitemap: https://bric.news/sitemap.xml
+Sitemap: https://bric.news/sitemap.xml

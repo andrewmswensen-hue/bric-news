@@ -8,7 +8,7 @@ const all = await getCollection('items');
 
 // Lead story: top policy item (featured first, then relevance, then date).
 const policyPick = all
-  .filter((i) => i.data.content_type === 'policy')
+  .filter((i) => i.data.content_type === 'policy' && !i.data.partner)
   .sort((a, b) => {
     if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
     const rs = (b.data.relevance_score ?? 0) - (a.data.relevance_score ?? 0);
@@ -16,9 +16,10 @@ const policyPick = all
     return b.data.published_at.getTime() - a.data.published_at.getTime();
   })[0];
 
-// Small slot 1: top news item (featured first, then date).
+// Small slot 1: top news item (featured first, then date). Partner content
+// never takes a top-story slot; see /about#partners.
 const newsPick = all
-  .filter((i) => i.data.content_type !== 'policy')
+  .filter((i) => i.data.content_type !== 'policy' && !i.data.partner)
   .sort((a, b) => {
     if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
     return b.data.published_at.getTime() - a.data.published_at.getTime();

@@ -1,6 +1,8 @@
 # BRIC.News — v1
 
-> **Live preview:** https://bric-news-site.andrew-m-swensen.workers.dev (deployed via Cloudflare Workers Static Assets, auto-deploys on push to `main`).
+> **Repo:** https://github.com/andrewmswensen-hue/bric-news · **Old preview (not updating):** https://bric-news-site.andrew-m-swensen.workers.dev
+>
+> Hosting is being re-done before public launch. The Cloudflare deploy workflow is manual-only until then. See `CLAUDE.md` for current status.
 
 **BRIC.News** is a continuously updated Columbus, Ohio real estate investor resource hub. It publishes local policy updates, market data, development news, a curated vendor directory, and a resource hub pulling together the municipal, county, and legal references investors reach for repeatedly.
 
@@ -12,8 +14,8 @@ BRIC.News is positioned as an independent publication. It takes no sponsorships 
 
 - **`src/`** — the Astro site (homepage, section pages, per-city hubs, vendor directory, resource hub, about page).
 - **`src/content/`** — Markdown collections (items, vendors, cities, resources) and their schemas.
-- **`scripts/`** — Python pipeline: supplemental RSS/Google News ingest, Flask review tool, weekly Beehiiv draft builder.
-- **`.github/workflows/`** — Cloudflare Pages deploy, daily ingest, weekly newsletter draft.
+- **`scripts/`** — Python pipeline: tiered RSS/Google News ingest (`supplemental_ingest.py` + `supplemental_sources.yaml`), weekly Beehiiv draft builder. `review.py` is the retired local review tool.
+- **`.github/workflows/`** — daily feed (opens a PR, or commits to main after the review period), manual Cloudflare Workers deploy, manual newsletter draft.
 
 ---
 
@@ -23,33 +25,34 @@ BRIC.News is positioned as an independent publication. It takes no sponsorships 
 |---|---|
 | Framework | Astro 4 (static output) |
 | Styling | Tailwind CSS |
-| Hosting | Cloudflare Pages |
+| Hosting | Cloudflare Workers static assets (being re-homed; deploy is manual for now) |
 | Source control | GitHub |
 | Content | Markdown in `src/content/` |
 | Ingest | Python 3.11+ |
-| AI | Anthropic Claude API (`claude-haiku-4-5-20251001` for scoring, `claude-opus-4-7` for rewrites and intros) |
+| AI | Anthropic Claude API (`claude-haiku-4-5` scores relevance, `claude-sonnet-5` writes summaries) |
 | Newsletter | Beehiiv (draft creation via API) |
 | Analytics | Cloudflare Web Analytics |
 
 Data flow:
 
 ```
-MONDAY MORNING
-  Crane email → Monday skill → BRIC publish skill (separate)
-  → writes JSON to scripts/queue/
-  → review.py approves → markdown in src/content/items/
-  → git push → Cloudflare deploy
+EVERY DAY 7:30 AM ET  (.github/workflows/daily-feed.yml)
+  scripts/supplemental_ingest.py
+    1. collect   every feed + Google News query in supplemental_sources.yaml
+                 (drop old, blocklisted, foreign, kill-pattern, already-seen)
+    2. score     Haiku rates each headline against its tier rubric
+    3. select    per tier: at/above the bar, best first, up to the daily cap
+    4. write     robots.txt -> fetch -> Sonnet rewrite -> quality gates
+                 -> markdown in src/content/items/
+  -> before 2026-10-02: pull request "Daily feed: <date>" for review (merge = publish)
+  -> after:             commits straight to main
+  -> deploy workflow (once hosting is set up)
 
-TUESDAY–FRIDAY 7 AM ET
-  GitHub Action runs scripts/supplemental_ingest.py
-  → Haiku scores relevance, Opus rewrites ≥5 items
-  → writes JSON to scripts/queue/ on branch queue-review/YYYY-MM-DD
-  → phone review via review.py → merge → Cloudflare deploy
+MONDAY (separate Claude skill, not in this repo)
+  Crane policy email -> item-registry.json -> policy items
 
-FRIDAY 7 AM ET
-  GitHub Action runs scripts/newsletter.py
-  → pulls items from last 7 days (featured OR score ≥ 7)
-  → creates a Beehiiv draft, prints URL
+FRIDAY (manual for now)
+  scripts/newsletter.py -> Beehiiv draft
 ```
 
 The BRIC publish skill (Monday-pipeline → BRIC queue) is **not** in this repo. It's a separate Claude skill Andrew configures alongside the existing Monday pipeline.
@@ -63,7 +66,7 @@ The BRIC publish skill (Monday-pipeline → BRIC queue) is **not** in this repo.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/<your-github-username>/bric-news.git
+git clone https://github.com/andrewmswensen-hue/bric-news.git
 cd bric-news
 npm install
 ```
@@ -108,7 +111,7 @@ pip install -r scripts/requirements.txt
 python scripts/supplemental_ingest.py --dry-run
 ```
 
-This parses `scripts/supplemental_sources.yaml`, fetches all RSS and Google News feeds, and reports how many new-vs-dupe items it would have processed. Useful for sanity checking before spending Anthropic credits.
+This parses `scripts/supplemental_sources.yaml`, fetches every feed and Google News query, resolves links, applies every filter that does not need AI, and prints the candidate list per tier. No API calls, nothing written. Useful for sanity checking before spending Anthropic credits.
 
 ### 3. Run a real ingest (one-off)
 
@@ -118,30 +121,21 @@ export ANTHROPIC_API_KEY=sk-ant-...
 python scripts/supplemental_ingest.py --limit 10
 ```
 
-New items land in `scripts/queue/YYYY-MM-DD-slug.json`. Nothing publishes until you approve them in the review tool.
+New items are written directly to `src/content/items/`, and a run report lands in `scripts/last_run.md`. In the GitHub workflow those files go into a pull request for review; locally, look at the files and commit what you want.
 
 ---
 
-## Review tool
+## Reviewing the daily feed
 
-After an ingest runs, the queue contains JSON files awaiting your review:
+Every morning the workflow opens a pull request named `Daily feed: YYYY-MM-DD (N items)`. The PR description lists every item with its tier, score, source, summary, and any flags the writer raised. Read it in the GitHub app or on the web:
 
-```bash
-source .venv/bin/activate
-python scripts/review.py
-```
+- **Publish everything:** merge the PR.
+- **Drop one item:** delete its file from the PR (GitHub's file view has a delete button), then merge.
+- **Skip the day:** close the PR. The items are remembered as seen and will not come back.
 
-Open `http://localhost:4001` on your laptop or phone. Each pending item shows:
+After `review_required_until` in `supplemental_sources.yaml` (2026-10-02) the workflow commits to `main` directly and no PR is opened.
 
-- **Editable**: summary, why-it-matters, topics, municipalities, content_type, featured flag.
-- **Read-only**: relevance score, risk flags, legislative status, classification.
-- **Actions**: Approve & publish (writes markdown to `src/content/items/`, moves JSON to `scripts/queue/processed/`), Save edits (keeps it in queue), Reject (asks for reason, moves to `scripts/queue/rejected/`), Skip.
-
-The header shows Pending / Approved today / Rejected today counts.
-
-The tool runs on `localhost` only — no auth, not for public exposure.
-
----
+`scripts/review.py`, the old local Flask review tool, still exists but nothing uses it anymore.
 
 ## Newsletter
 
@@ -159,49 +153,27 @@ Without Beehiiv credentials, the script writes `scripts/newsletter-preview.html`
 
 ---
 
-## Deployment (Cloudflare Pages)
+## Deployment
 
-### First-time setup
+The site deploys to Cloudflare Workers static assets via `.github/workflows/deploy.yml`. It runs only when triggered by hand from the Actions tab, or on every push to `main` once the repository variable `DEPLOY_ON_PUSH` is set to `true`.
 
-1. **Create a Cloudflare account** (free) and sign in.
-2. In the Cloudflare dashboard → **Pages** → **Create a project** → **Connect to Git**.
-3. Authorize GitHub and select your `bric-news` repo.
-4. Framework preset: **Astro**. Build command: `npm run build`. Build output: `dist`. Environment variable `NODE_VERSION=20`.
-5. Save and deploy. You'll get a `bric-news.pages.dev` URL within a minute.
+Required repository secrets (GitHub → Settings → Secrets and variables → Actions):
 
-### Wire up the GitHub Action (optional but recommended)
+- `ANTHROPIC_API_KEY` — for the daily feed. Use a dedicated key with its own spend limit.
+- `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` — for deploys, once hosting is settled.
+- `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID` — for the newsletter, once Beehiiv is connected.
 
-The Cloudflare dashboard build is automatic on push. If you want the GitHub Action in `.github/workflows/deploy.yml` to also handle deploys, set these secrets in the repo's GitHub → Settings → Secrets and variables → Actions:
+### DNS for `bric.news` (Spaceship)
 
-- `CLOUDFLARE_API_TOKEN` — create via **My Profile → API Tokens → Create Token → Edit Cloudflare Workers** template (gives you Pages deploy rights).
-- `CLOUDFLARE_ACCOUNT_ID` — visible in the right sidebar of any Cloudflare dashboard page.
-
-Set these other secrets for the pipeline workflows:
-
-- `ANTHROPIC_API_KEY`
-- `BEEHIIV_API_KEY`
-- `BEEHIIV_PUBLICATION_ID`
-
-### DNS configuration for `bric.news` (Spaceship)
-
-Once the site is live on `bric-news.pages.dev`:
-
-1. In Cloudflare Pages → your project → **Custom domains** → **Set up a custom domain** → enter `bric.news`.
-2. Cloudflare will show you the DNS records to create.
-3. In Spaceship (your registrar) → DNS settings for `bric.news`:
-   - Add a **CNAME** record: `@` → `bric-news.pages.dev` (or whatever Cloudflare shows). Some registrars require CNAME flattening; Spaceship supports it.
-   - Optionally, add a **CNAME** record: `www` → `bric-news.pages.dev`.
-4. Wait 5–60 minutes for DNS propagation. Cloudflare will auto-provision an SSL cert.
-
----
+The domain is registered at Spaceship and currently parked. When hosting is ready: add the site to the Cloudflare account, point the nameservers at Cloudflare from the Spaceship DNS panel, then attach `bric.news` as a custom domain on the Workers project. Cloudflare issues the certificate automatically.
 
 ## Weekly operational flow
 
 | Day | Time | What happens | Your action |
 |---|---|---|---|
-| Monday | 9 AM | Crane email arrives → Monday skill → BRIC publish skill fills `scripts/queue/` with ~15–25 policy items | Review approved batch in `review.py` (~30 min) |
-| Tue–Fri | 7 AM | Daily ingest action fills queue with ~2–5 non-policy items | Review queue from phone (~5 min) |
-| Friday | 7 AM | Newsletter action creates a Beehiiv draft | Review & send (~15 min) |
+| Every day | 7:30 AM ET | Daily feed workflow scores every source and opens a PR with the day's items (roughly 5-15) | Read the PR, merge (~5 min) |
+| Monday | 9 AM | Crane email → Monday skill → policy items via the registry | Review alongside the daily PR |
+| Friday | manual | Newsletter draft (once Beehiiv is connected) | Review & send (~15 min) |
 | Any time | — | Manual vendor/resource/city additions via markdown edits | Commit & push |
 
 Missing a day is fine. The pipeline tolerates skipped reviews; items queue up.
@@ -262,10 +234,13 @@ Run `npm run astro sync` or delete `.astro/` and try again. Most often this is a
 **Ingest script says `ANTHROPIC_API_KEY missing`.**
 Either `source .venv/bin/activate && export ANTHROPIC_API_KEY=...` or put the key in `.env` and use a tool like `dotenv-cli` or `direnv`. Alternatively run with `--dry-run` to test without any API call.
 
-**Flask review tool shows empty queue even after ingest.**
-The queue lives in `scripts/queue/`. If items are in `scripts/queue/processed/` or `scripts/queue/rejected/`, they are not pending. If you ran the ingest on GitHub Actions, pull the `queue-review/YYYY-MM-DD` branch locally first.
+**The daily feed workflow fails immediately.**
+Almost always the missing `ANTHROPIC_API_KEY` secret (exit code 2 in the log). Add it under GitHub → Settings → Secrets and variables → Actions and re-run the workflow.
 
-**Cloudflare Pages build fails with "Cannot find module '@astrojs/tailwind'"**
+**The daily feed opened a PR with nothing local in it.**
+Local sources are Google News queries plus the RLPM feed; on a quiet day they can all fall below the bar. Check the "Run stats" section of the PR body: `below_bar` and `killed` counts tell you whether items were found and rejected or never found at all.
+
+**Build fails with "Cannot find module '@astrojs/tailwind'"**
 Run `npm ci` locally, commit the updated `package-lock.json`, push.
 
 **Beehiiv draft API returns 401.**
@@ -275,11 +250,10 @@ Double-check `BEEHIIV_API_KEY` is a **Publication API Key** (not an account toke
 
 ## Decisions made during initial build
 
-- **GitHub repo URL** was not provided at build time. Placeholders using `<your-github-username>/bric-news` are used in docs; update the git remote when the real repo is created.
-- **Cloudflare Pages subdomain first.** The site is ready to deploy to `bric-news.pages.dev` out of the box. DNS for `bric.news` → Cloudflare Pages is documented above but not wired.
+- **Hosting deferred.** The original build deployed to a personal Cloudflare account; that deploy is frozen and the site will be re-homed on a role-owned account before launch. DNS for `bric.news` is documented above but not wired.
 - **Beehiiv embed is stubbed.** The homepage and `<NewsletterCTA />` component use a placeholder form posting to `subscribe.example.beehiiv.com`. When the Beehiiv publication is live, replace the two `data-beehiiv-placeholder` forms in `src/components/NewsletterCTA.astro` with the real embed code from Beehiiv → Website → Forms → Embed. The newsletter-drafting backend (`scripts/newsletter.py`) is already wired to the Beehiiv API and expects `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID`.
 - **`@astrojs/sitemap` was removed.** The plugin conflicted with a build-hook change in Astro 4.15. Sitemap generation can be re-added later (or generated from a custom Astro endpoint) — not launch-blocking.
-- **No sitemap, no RSS yet.** Both are easy to add pre-launch via `@astrojs/rss` and a hand-rolled sitemap endpoint if/when SEO becomes a priority.
+- **Sitemap and RSS added Sep 2026** at `/sitemap.xml` and `/rss.xml`.
 
 ---
 
@@ -288,7 +262,6 @@ Double-check `BEEHIIV_API_KEY` is a **Publication API Key** (not an account toke
 - Verify real RSS URLs for Central Ohio REIA, BIA Central Ohio, Franklin County Auditor, and Columbus Business First (placeholders marked in `scripts/supplemental_sources.yaml`).
 - Replace smaller-city resource URLs (Reynoldsburg, Licking County, Worthington, etc.) with verified current links where placeholder patterns were used.
 - Wire a real notification destination for the daily-ingest workflow (email, Slack webhook, or push — currently just logs).
-- Add `@astrojs/rss` for a site-level RSS feed before public announcement.
 - Replace the placeholder Beehiiv embed in `src/components/NewsletterCTA.astro` once the publication is live.
 - Set up Cloudflare Web Analytics and paste the tracking snippet into `src/layouts/BaseLayout.astro`.
 

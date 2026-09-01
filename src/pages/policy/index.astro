@@ -1,33 +1,53 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ItemCard from '../../components/ItemCard.astro';
+import ItemRow from '../../components/ItemRow.astro';
 import FeatureItemCard from '../../components/FeatureItemCard.astro';
 import FilterBar from '../../components/FilterBar.astro';
 import OhioIcon from '../../components/OhioIcon.astro';
 import { getCollection } from 'astro:content';
-import { MUNICIPALITIES } from '../../content/config';
+import { MUNICIPALITIES, SCOPES, SCOPE_LABELS } from '../../content/config';
+
+// The front grid: 3 across, up to 6 down. Everything past that still
+// publishes but renders as a compact list so the page stays scannable.
+const FRONT_MAX = 18;
 
 const all = await getCollection('items');
 const items = all
   .filter((i) => i.data.content_type === 'policy')
   .sort((a, b) => {
     if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
-    return b.data.published_at.getTime() - a.data.published_at.getTime();
+    const dt = b.data.published_at.getTime() - a.data.published_at.getTime();
+    if (dt !== 0) return dt;
+    return (b.data.relevance_score ?? 0) - (a.data.relevance_score ?? 0);
   });
 const [feature, ...rest] = items;
+const front = rest.slice(0, FRONT_MAX);
+const more = rest.slice(FRONT_MAX);
 
+const scopeOptions = SCOPES.map((s) => ({ value: s, label: SCOPE_LABELS[s] }));
 const muniOptions = MUNICIPALITIES.map((m) => ({ value: m, label: m.replace(/-/g, ' ') }));
 const statusValues = Array.from(new Set(items.map((i) => i.data.legislative_status).filter(Boolean) as string[])).sort();
 const statusOptions = statusValues.map((s) => ({ value: s, label: s }));
+
+const attrs = (i: (typeof items)[number]) => ({
+  'data-policy-item': true,
+  'data-scope': i.data.scope,
+  'data-muni': i.data.municipalities.join(','),
+  'data-status': i.data.legislative_status || '',
+});
 ---
 
-<BaseLayout title="Policy Watch – BRIC.News" description="Columbus-metro real estate policy updates, curated for investors and landlords.">
+<BaseLayout
+  title="Policy Watch – BRIC.News"
+  description="Real estate policy for Columbus investors and landlords: municipal ordinances, Ohio legislation, court rulings, and the federal rules that reach Columbus rentals."
+>
   <section class="module-band bg-bone">
     <div class="container-content">
       <div class="relative mb-10">
         <div class="max-w-prose">
-          <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal">Columbus-Metro Policy Watch</h1>
-          <p class="text-slate mt-2">Policy, permits, and regulation changes across Columbus and the surrounding municipalities. Updated as items move.</p>
+          <h1 class="font-heading font-extrabold text-3xl md:text-4xl text-charcoal">Policy Watch</h1>
+          <p class="text-slate mt-2">Ordinances, permits, tax rules, and regulation across Columbus and its suburbs, plus the Ohio and federal actions that change what a Columbus landlord has to do. Updated as items move.</p>
         </div>
         <div class="md:absolute md:top-0 md:right-0 md:-mt-4 mt-6 flex md:block">
           <OhioIcon variant="solid" size="lg" label="Central Ohio" class="md:opacity-90" />
@@ -37,6 +57,7 @@ const statusOptions = statusValues.map((s) => ({ value: s, label: s }));
       <FilterBar
         target="[data-policy-item]"
         groups={[
+          { label: 'Scope', attr: 'scope', options: scopeOptions },
           { label: 'Municipality', attr: 'muni', options: muniOptions },
           { label: 'Status', attr: 'status', options: statusOptions },
         ]}
@@ -47,26 +68,34 @@ const statusOptions = statusValues.map((s) => ({ value: s, label: s }));
       ) : (
         <>
           {feature && (
-            <div
-              class="mb-8"
-              data-policy-item
-              data-muni={feature.data.municipalities.join(',')}
-              data-status={feature.data.legislative_status || ''}
-            >
+            <div class="mb-8" {...attrs(feature)}>
               <FeatureItemCard item={feature} showPolicyBadge />
             </div>
           )}
+
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {rest.map((item) => (
-              <div
-                data-policy-item
-                data-muni={item.data.municipalities.join(',')}
-                data-status={item.data.legislative_status || ''}
-              >
+            {front.map((item) => (
+              <div {...attrs(item)}>
                 <ItemCard item={item} showPolicyBadge />
               </div>
             ))}
           </div>
+
+          {more.length > 0 && (
+            <div class="mt-12">
+              <div class="flex items-end justify-between flex-wrap gap-2 mb-4">
+                <h2 class="font-heading font-bold text-brick text-lg uppercase tracking-wider">More policy items</h2>
+                <span class="text-xs text-slate">{more.length} more item{more.length === 1 ? '' : 's'}</span>
+              </div>
+              <div class="grid grid-cols-1 gap-2">
+                {more.map((item) => (
+                  <div {...attrs(item)}>
+                    <ItemRow item={item} showPolicyBadge />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>

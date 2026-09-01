@@ -17,8 +17,9 @@ scripts/__pycache__/
 .venv/
 venv/
 
-# pipeline state
-scripts/state.json
+# pipeline state (state.json IS tracked: the daily workflow needs it across runs)
+scripts/last_run.json
+scripts/last_run.md
 scripts/queue/*.json
 !scripts/queue/.gitkeep
 scripts/queue/processed/*.md
@@ -27,6 +28,9 @@ scripts/queue/processed/*.json
 scripts/queue/rejected/*.md
 scripts/queue/rejected/*.json
 !scripts/queue/rejected/.gitkeep
+
+# claude code worktrees (never commit)
+.claude/worktrees/
 
 # os / editors
 .DS_Store
