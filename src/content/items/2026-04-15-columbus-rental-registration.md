@@ -11,6 +11,5 @@ content_type: "policy"
 entities: ["Columbus City Council", "Ordinance 0721-2026"]
 legislative_status: "first reading passed"
 classification: "update"
-featured: true
 relevance_score: 9
 ---

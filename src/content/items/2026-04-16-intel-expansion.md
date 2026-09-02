@@ -9,6 +9,5 @@ topics: ["development", "incentives"]
 municipalities: ["licking-county", "franklin-county"]
 content_type: "news"
 entities: ["Intel", "JobsOhio"]
-featured: true
 relevance_score: 9
 ---

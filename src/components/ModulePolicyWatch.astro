@@ -1,17 +1,13 @@
 ---
 import { getCollection } from 'astro:content';
 import ItemCard from './ItemCard.astro';
+import { frontPageOrder } from '../lib/frontPage';
 
 const all = await getCollection('items');
-const policy = all
-  .filter((i) => i.data.content_type === 'policy')
-  .sort((a, b) => {
-    if (a.data.featured !== b.data.featured) return a.data.featured ? -1 : 1;
-    const rs = (b.data.relevance_score ?? 0) - (a.data.relevance_score ?? 0);
-    if (rs !== 0) return rs;
-    return b.data.published_at.getTime() - a.data.published_at.getTime();
-  })
-  .slice(0, 3);
+const policy = frontPageOrder(
+  all.filter((i) => i.data.content_type === 'policy'),
+  3,
+).slice(0, 3);
 ---
 
 <section class="module-band bg-bone">

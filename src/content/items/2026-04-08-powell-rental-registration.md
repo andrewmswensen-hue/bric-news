@@ -11,6 +11,5 @@ content_type: "policy"
 entities: ["City of Powell", "Powell Commission"]
 legislative_status: "discussion only"
 classification: "new"
-featured: true
 relevance_score: 9
 ---

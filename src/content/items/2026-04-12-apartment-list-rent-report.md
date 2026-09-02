@@ -9,6 +9,5 @@ topics: ["market"]
 municipalities: ["columbus", "franklin-county", "delaware-county"]
 content_type: "market_data"
 entities: ["Apartment List"]
-featured: true
 relevance_score: 8
 ---

@@ -11,6 +11,5 @@ content_type: "policy"
 entities: ["Franklin City Council", "Ordinance 2026-031"]
 legislative_status: "passed"
 classification: "new"
-featured: true
 relevance_score: 8
 ---
