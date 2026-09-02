@@ -1,20 +1,53 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import ByTheNumbers from '../components/ByTheNumbers.astro';
-import ModulePolicyWatch from '../components/ModulePolicyWatch.astro';
-import ModuleLatestNews from '../components/ModuleLatestNews.astro';
+import ModuleBand from '../components/ModuleBand.astro';
 import ModuleMoreFromBRIC from '../components/ModuleMoreFromBRIC.astro';
 import ModuleFeaturedGuide from '../components/ModuleFeaturedGuide.astro';
 import NewsletterCTA from '../components/NewsletterCTA.astro';
 import SectionDivider from '../components/SectionDivider.astro';
+import { planHomepage } from '../lib/homepage';
+
+// One selector picks for every band, so no item appears twice on the page
+// and each heading matches its contents. See src/lib/homepage.ts.
+const plan = planHomepage(await getCollection('items'));
 ---
 
 <BaseLayout>
-  <Hero />
-  <ModulePolicyWatch />
+  <Hero policyPick={plan.heroPolicy} newsPick={plan.heroNews} />
+
+  <ModuleBand
+    title="Columbus Policy Watch"
+    subtitle="Ordinances, permits, and enforcement across the 13 jurisdictions we track."
+    items={plan.columbusPolicy}
+    href="/policy"
+    linkLabel="See all policy updates"
+    showPolicyBadge
+    tone="bone"
+  />
+
   <ByTheNumbers />
-  <ModuleLatestNews />
+
+  <ModuleBand
+    title="Columbus News & Market Data"
+    subtitle="Local development, rents and prices, and investor events in Central Ohio."
+    items={plan.columbusNews}
+    href="/news"
+    linkLabel="See all Columbus news"
+    tone="bone-2"
+  />
+
+  <ModuleBand
+    title="Ohio & National"
+    subtitle="Statehouse bills and federal rules that reach Columbus rentals."
+    items={plan.ohioNational}
+    href="/policy"
+    linkLabel="See all policy updates"
+    tone="bone"
+  />
+
   <SectionDivider />
   <ModuleFeaturedGuide />
   <SectionDivider />

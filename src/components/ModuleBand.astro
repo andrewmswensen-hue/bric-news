@@ -1,0 +1,48 @@
+---
+/**
+ * One home-page band: a heading, a subhead, a row of item cards, and a link
+ * to the section that holds the rest. Renders nothing when it has no items,
+ * so a thin news day leaves a shorter page rather than an empty heading.
+ */
+import type { CollectionEntry } from 'astro:content';
+import ItemCard from './ItemCard.astro';
+
+interface Props {
+  title: string;
+  subtitle: string;
+  items: CollectionEntry<'items'>[];
+  href: string;
+  linkLabel: string;
+  showPolicyBadge?: boolean;
+  tone?: 'bone' | 'bone-2';
+}
+
+const {
+  title,
+  subtitle,
+  items,
+  href,
+  linkLabel,
+  showPolicyBadge = false,
+  tone = 'bone',
+} = Astro.props;
+---
+
+{items.length > 0 && (
+  <section class={`module-band ${tone === 'bone-2' ? 'bg-bone-2' : 'bg-bone'}`}>
+    <div class="container-content">
+      <div class="mb-2">
+        <h2 class="module-heading">{title}</h2>
+        <p class="module-sub">{subtitle}</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {items.map((item) => <ItemCard item={item} showPolicyBadge={showPolicyBadge} />)}
+      </div>
+
+      <p class="mt-6 text-right">
+        <a href={href} class="link-arrow">{linkLabel} →</a>
+      </p>
+    </div>
+  </section>
+)}
