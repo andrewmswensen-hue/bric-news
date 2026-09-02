@@ -15,7 +15,7 @@ BRIC.News is positioned as an independent publication. It takes no sponsorships 
 - **`src/`** — the Astro site (homepage, section pages, per-city hubs, vendor directory, resource hub, about page).
 - **`src/content/`** — Markdown collections (items, vendors, cities, resources) and their schemas.
 - **`scripts/`** — Python pipeline: tiered RSS/Google News ingest (`supplemental_ingest.py` + `supplemental_sources.yaml`), weekly Beehiiv draft builder. `review.py` is the retired local review tool.
-- **`.github/workflows/`** — daily feed (opens a PR, or commits to main after the review period), GitHub Pages preview publish, manual newsletter draft.
+- **`.github/workflows/`** — GitHub Pages preview publish, manual newsletter draft. (The feed itself runs from a scheduled Claude task on the publisher's Mac; see `scripts/AGENT_RUN.md`.)
 
 ---
 
@@ -46,10 +46,6 @@ DAILY (or every other day)
   -> before 2026-10-02: pull request "Daily feed: <date>" for review (merge = publish)
   -> after:             commits straight to main
   -> GitHub Pages rebuilds the preview on every push to main
-
-  Optional API-key path: .github/workflows/daily-feed.yml runs the same
-  pipeline unattended on GitHub (Haiku scores, Sonnet writes). It skips with
-  a warning until ANTHROPIC_API_KEY is set.
 
 MONDAY (separate Claude skill, not in this repo)
   Crane policy email -> item-registry.json -> policy items
@@ -166,7 +162,6 @@ GitHub Pages serves project sites under `/bric-news/`, so the workflow runs `scr
 
 Required repository secrets (GitHub → Settings → Secrets and variables → Actions):
 
-- `ANTHROPIC_API_KEY` — only if you want the GitHub Action to run the feed instead of the scheduled Claude task. Use a dedicated key with its own spend limit.
 - `BEEHIIV_API_KEY` and `BEEHIIV_PUBLICATION_ID` — for the newsletter, once Beehiiv is connected.
 
 ### Going live on `bric.news` (later)
@@ -240,8 +235,8 @@ Run `npm run astro sync` or delete `.astro/` and try again. Most often this is a
 **Ingest script says `ANTHROPIC_API_KEY missing`.**
 Either `source .venv/bin/activate && export ANTHROPIC_API_KEY=...` or put the key in `.env` and use a tool like `dotenv-cli` or `direnv`. Alternatively run with `--dry-run` to test without any API call.
 
-**The daily feed workflow shows a warning and does nothing.**
-That is expected without the `ANTHROPIC_API_KEY` secret; the scheduled Claude task is the primary runner. Add the secret only if you want the Action to run the feed itself.
+**The scheduled feed task did not run.**
+It only runs while the Claude desktop app is open; if the Mac was asleep or the app closed at 7:30 AM it runs on next launch. Check the Scheduled section in the app's sidebar.
 
 **The daily feed opened a PR with nothing local in it.**
 Local sources are Google News queries plus the RLPM feed; on a quiet day they can all fall below the bar. Check the "Run stats" section of the PR body: `below_bar` and `killed` counts tell you whether items were found and rejected or never found at all.
