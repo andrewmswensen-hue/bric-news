@@ -18,7 +18,7 @@ Management, see `/about#partners`).
 | GitHub repo | `andrewmswensen-hue/bric-news` (personal account, private). Transferred from the `bric-news` org on 2026-09-01. |
 | Preview site | https://andrewmswensen-hue.github.io/bric-news/ — GitHub Pages, rebuilt on every push to `main` by `pages.yml`. The old Cloudflare deploy was removed on 2026-09-01; nothing Cloudflare remains. |
 | Domain `bric.news` | Registered at Spaceship, still on their parking page. Not connected. |
-| Daily feed | **Primary:** a scheduled Claude Code task on the publisher's Mac follows `scripts/AGENT_RUN.md` (runs on the Claude plan, no API key). **Optional:** `.github/workflows/daily-feed.yml` does the same with API calls; it skips with a warning until `ANTHROPIC_API_KEY` is set. |
+| Daily feed | A scheduled Claude Code task (`bric-daily-feed`, every other day 7:30 AM) on the publisher's Mac follows `scripts/AGENT_RUN.md`. Runs on the Claude plan; **no API key anywhere.** Model pinned to Sonnet via `.claude/settings.json`. |
 | Publish workflow | `.github/workflows/pages.yml`. Builds, prefixes links with `/bric-news/` (`scripts/pages-base.mjs`), deploys to Pages. |
 | Newsletter | `scripts/newsletter.py` + manual-only workflow. Beehiiv not connected. Signup form on the site is still a placeholder. |
 
@@ -54,12 +54,12 @@ item summarized in the PR body. Merge it to publish. After
 `settings.review_required_until` (2026-10-02) it commits to main directly.
 `scripts/state.json` is the dedupe ledger and is committed on every run.
 
-**Two runners, same rules.** The API path (`daily-feed.yml`) calls Haiku and
-Sonnet directly. The agent path (`scripts/AGENT_RUN.md`) is the same
-pipeline broken into `--collect-json`, `--fetch`, and `--write-items` so a
-Claude Code session does the scoring and writing itself. Caps, kill
-patterns, generic-why rejection, dedupe, robots, and paywall checks live in
-the script and apply to both.
+**How it runs.** `scripts/AGENT_RUN.md` breaks the pipeline into
+`--collect-json`, `--fetch`, and `--write-items` so the Claude session does
+the scoring and writing itself. Caps, kill patterns, generic-why rejection,
+dedupe, robots, and paywall checks live in the script. The script's
+unattended API mode (Haiku + Sonnet via `ANTHROPIC_API_KEY`) still exists
+for local use but nothing schedules it.
 
 Test without spending anything:
 
@@ -118,8 +118,8 @@ management company named in items unless it is the news.
 
 ## Open items, in priority order
 
-1. Create the scheduled Claude task (see `scripts/AGENT_RUN.md`) and read
-   the first PR it opens. (Or add `ANTHROPIC_API_KEY` and use the Action.)
+1. Keep merging the feed PRs; flip `review_required_until` in
+   `scripts/supplemental_sources.yaml` to auto-publish when ready.
 2. Connect `bric.news` when ready: CNAME at Spaceship → `andrewmswensen-hue.github.io`,
    custom domain in Pages settings, drop the base-path step in `pages.yml`.
 3. Replace the placeholder Beehiiv form; connect the newsletter workflow.

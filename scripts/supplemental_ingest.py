@@ -1044,6 +1044,7 @@ def agent_write(cfg: Config, state: dict, items_path: Path, seen_path: Path | No
                 if c.get("url"):
                     seen_urls.add(c["url"])
             stats["marked_seen"] = len(cand)
+            stats["candidates"] = len(cand)
         except Exception:
             pass
     state["seen_urls"] = sorted(seen_urls)
