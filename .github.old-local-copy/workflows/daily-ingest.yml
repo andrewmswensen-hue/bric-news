@@ -1,0 +1,59 @@
+name: Daily supplemental ingest
+
+on:
+  # 11:00 UTC = 7:00 AM ET during Daylight Saving.
+  # Outside DST (roughly Nov-Mar) this fires at 6:00 AM ET. Shift to '0 12 * * 2-5' if you prefer fixed 7am year-round.
+  schedule:
+    - cron: '0 11 * * 2-5'
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install pipeline deps
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run supplemental ingest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ITEM_REGISTRY_PATH: scripts/item-registry.json
+        run: python scripts/supplemental_ingest.py
+
+      - name: Push queue to review branch if new items exist
+        run: |
+          # Configure git for commits
+          git config user.name "bric-news-bot"
+          git config user.email "bot@bric.news"
+
+          queue_files=$(ls scripts/queue/*.json 2>/dev/null || true)
+          if [ -z "$queue_files" ]; then
+            echo "Queue is empty, nothing to push."
+            exit 0
+          fi
+
+          date_tag=$(date +%Y-%m-%d)
+          branch="queue-review/$date_tag"
+          git checkout -B "$branch"
+          git add -f scripts/queue/*.json scripts/state.json
+          git commit -m "Queue for $date_tag ($(echo "$queue_files" | wc -l | tr -d ' ') items)"
+          git push -f origin "$branch"
+          echo "Pushed $(echo "$queue_files" | wc -l | tr -d ' ') items to $branch"
+          echo "QUEUE_BRANCH=$branch" >> $GITHUB_ENV
+
+      - name: Notify (log only — wire real webhook later)
+        if: env.QUEUE_BRANCH != ''
+        run: echo "Queue ready on branch $QUEUE_BRANCH — pull locally and run python scripts/review.py"

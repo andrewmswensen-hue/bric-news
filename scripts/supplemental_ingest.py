@@ -197,6 +197,7 @@ Score 5-10 for:
 - REIA, BIA, and other investor events worth attending
 - Educational explainers on Ohio landlord operations (leases, deposits, maintenance, tenant law)
 - New public resources: lookup tools, forms, portals, fee schedules
+- Housing service and legal aid organizations (for example CRIS Ohio) ONLY when the item reaches a landlord's own decisions: housing voucher and Section 8 access or program changes, rulings on work authorization or immigration status that affect income verification and tenant screening, eviction or fair housing legal action, or a shift in resettlement volume large enough to move rental demand. Their staff spotlights, fundraising, donor news, volunteer drives, and program celebrations are not news for this audience: score those 1-3.
 - Semi-real-estate stories that still carry an investor angle: a major employer expansion that will move rents, a transit or road project that changes a neighborhood, a school or infrastructure decision that affects property values. Nuance is allowed here when the investor angle is real.
 
 Score 1-4 for: crime blotter, general civic news, restaurant and retail openings with no real estate angle, individual home sales and single listings, sports, vendor press releases dressed as news, promotion of a specific property management company other than an educational explainer.""",
