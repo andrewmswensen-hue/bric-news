@@ -42,8 +42,11 @@ npm install && npm run build && npm run preview
    its tier's rubric using only the headline and feed snippet. It can also
    hard-kill (opinion, marketing, no property nexus, daily noise).
 3. **Select.** Per tier, keep items at or above the bar, rank by score, fill
-   the daily cap. National: bar 8, cap 2. State: bar 7, cap 3. Local: bar 5,
-   cap 10. Partner (RLPM) items: bar 6.
+   the daily cap. National: bar 7, cap 2. State: bar 7, cap 3. Local: bar 5,
+   cap 10. Partner (RLPM) items: bar 6. The cap does most of the quality
+   work: it takes only the best N of the day, so a bar mainly matters on a
+   thin day. National items must additionally pass the Columbus
+   read-through test in the rubric.
 4. **Write.** Honor robots.txt, fetch the article, skip paywalls and thin
    pages, have Sonnet (`claude-sonnet-5`) write the BRIC title / summary /
    detail / why-it-matters, reject generic why-it-matters lines, dedupe by
@@ -53,6 +56,14 @@ Either runner then opens a **pull request** (`feed/YYYY-MM-DD`) with every
 item summarized in the PR body. Merge it to publish. After
 `settings.review_required_until` (2026-10-02) it commits to main directly.
 `scripts/state.json` is the dedupe ledger and is committed on every run.
+
+**Volume tuning (2026-09-02).** Supply was never the constraint (~170 fresh
+candidates per 3 days); the caps and cadence were. Now: daily instead of
+every other day, a 7-day age window instead of 3 (local coverage of council
+and county action often lands days late), and the national bar at 7. To
+change volume again, edit `settings.max_age_days` and the `tiers` block in
+`scripts/supplemental_sources.yaml`, and the cron on the `bric-daily-feed`
+scheduled task.
 
 **How it runs.** `scripts/AGENT_RUN.md` breaks the pipeline into
 `--collect-json`, `--fetch`, and `--write-items` so the Claude session does

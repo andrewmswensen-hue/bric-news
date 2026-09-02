@@ -17,9 +17,11 @@
 version: 2
 
 settings:
-  # Ignore feed entries older than this. Keeps the site current and stops a
-  # first run from dumping a month of history.
-  max_age_days: 3
+  # Ignore feed entries older than this. Also becomes the `when:Nd` window on
+  # every Google News query. Widened from 3 to 7 on 2026-09-02: local
+  # coverage of council and county action often lands days after the meeting,
+  # and a 3-day window was dropping it.
+  max_age_days: 7
   # Per source, per run. Prevents one chatty feed from flooding the candidate list.
   max_items_per_source: 10
   # Minimum extracted article length before we trust we read the substance.
@@ -34,7 +36,11 @@ settings:
 
 tiers:
   national:
-    min_score: 8
+    # Lowered from 8 to 7 on 2026-09-02. Low risk to quality: the cap takes
+    # only the best 2 of the day regardless, so the bar matters only on days
+    # when nothing scores an 8, and it must still clear the Columbus
+    # read-through test in the rubric.
+    min_score: 7
     daily_cap: 2
   state:
     min_score: 7
