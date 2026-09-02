@@ -1,0 +1,30 @@
+name: Weekly newsletter draft
+
+on:
+  # 11:00 UTC = 7:00 AM ET during Daylight Saving. Shift to '0 12 * * 5' for fixed 7am ET year-round.
+  schedule:
+    - cron: '0 11 * * 5'
+  workflow_dispatch:
+
+jobs:
+  newsletter:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install pipeline deps
+        run: pip install -r scripts/requirements.txt
+
+      - name: Build Beehiiv draft
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
+          BEEHIIV_PUBLICATION_ID: ${{ secrets.BEEHIIV_PUBLICATION_ID }}
+        run: python scripts/newsletter.py

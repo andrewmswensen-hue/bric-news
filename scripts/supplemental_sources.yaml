@@ -178,6 +178,28 @@ sources:
       in BRIC voice, labeled as partner content on the site. Slightly higher
       bar so only educational posts come through, not company announcements.
 
+  - id: cris-ohio-spotlights
+    label: CRIS Ohio (newsletter)
+    type: rss_feed
+    url: https://www.crisohio.org/newsletter-spotlights?format=rss
+    scope: local
+    category: news
+    min_score: 7
+    notes: >
+      Community Refugee and Immigration Services, Columbus. Covers Section 8
+      and voucher access, resettlement volume, and immigration status changes
+      that reach tenancy. Mostly organizational news, so the bar is raised to
+      7: only items a landlord would act on should pass.
+
+  - id: cris-ohio-blog
+    label: CRIS Ohio (blog)
+    type: rss_feed
+    url: https://www.crisohio.org/blog?format=rss
+    scope: local
+    category: news
+    min_score: 7
+    notes: Same source and same raised bar; the blog carries the legal and policy explainers.
+
   - id: gn-columbus-rent
     label: Columbus rent reports
     type: google_news_query
