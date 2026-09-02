@@ -156,7 +156,9 @@ GENERIC_WHY_PATTERNS = [
 TIER_RUBRICS = {
     "national": """NATIONAL tier. The bar is high: a national story earns a slot on a Columbus site only if it changes what a Columbus-area landlord, property manager, or small investor actually does, budgets, or complies with.
 
-Score 8-10 only for:
+THE COLUMBUS READ-THROUGH TEST, which every national item must pass before any score above 6: can you name the specific thing a Columbus landlord does differently, pays differently, or must comply with because of this story? Not "it is about housing" and not "investors care about rates." A concrete consequence for an owner of a few rental units in Franklin, Delaware, or Licking County. If you cannot name one in a sentence, the item scores 6 or below no matter how important the story is nationally. Being genuinely major news is not the same as being usable news for this audience.
+
+Score 7-10 only for:
 - Federal rules reaching rental operations: HUD, FHFA, FHA, Section 8 / housing choice voucher program changes
 - Tax law touching depreciation, 1031 exchanges, mortgage interest, or pass-through treatment
 - Tenant screening and credit reporting regulation (FCRA, background checks)
