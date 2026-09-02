@@ -80,7 +80,15 @@ PR flow and is no longer used by anything.
 - `src/components/` — Astro components. `ItemDetail.astro` is the pop-up
   detail view (included once in `BaseLayout`); every item card carries its
   payload in `data-item` and opens it. `ItemRow.astro` is the compact row
-  for "More from the feed."
+  for "More from the feed." `ModuleBand.astro` renders one home-page band
+  and hides itself when it has no items.
+- `src/lib/homepage.ts` — picks every item the home page shows, in one
+  pass. **The home page is organized by place, not type:** Columbus Policy
+  Watch, Columbus News & Market Data, Ohio & National. Each band is defined
+  by the same `scope` field the card badge reads, so a heading cannot drift
+  out of sync with its contents, and a shared "used" set means no item
+  appears twice on the page. Change band membership here, not in the
+  page.
 - `src/lib/itemPayload.ts` — builds that payload; single source of truth for
   labels (scope, type, partner).
 - `src/content/` — Markdown content validated by `src/content/config.ts`:

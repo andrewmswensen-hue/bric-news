@@ -1,24 +1,18 @@
 ---
+import type { CollectionEntry } from 'astro:content';
 import { getCollection } from 'astro:content';
 import NewsletterCTA from './NewsletterCTA.astro';
 import HeroStoryCard from './HeroStoryCard.astro';
 import HeroGuideCard from './HeroGuideCard.astro';
-import { frontPageOrder } from '../lib/frontPage';
 
-const all = await getCollection('items');
+interface Props {
+  policyPick: CollectionEntry<'items'> | null;
+  newsPick: CollectionEntry<'items'> | null;
+}
 
-// Lead story: top policy item (featured first, then relevance, then date).
-const policyPick = frontPageOrder(
-  all.filter((i) => i.data.content_type === 'policy' && !i.data.partner),
-  1,
-)[0];
-
-// Small slot 1: top news item (featured first, then date). Partner content
-// never takes a top-story slot; see /about#partners.
-const newsPick = frontPageOrder(
-  all.filter((i) => i.data.content_type !== 'policy' && !i.data.partner),
-  1,
-)[0];
+// The two lead stories are chosen in src/lib/homepage.ts alongside every
+// other band, so nothing on the page appears twice.
+const { policyPick, newsPick } = Astro.props;
 
 // Small slot 2: featured guide.
 const guides = await getCollection('guides');
