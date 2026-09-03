@@ -134,7 +134,66 @@ TITLE_KILL_PATTERNS = [
     re.compile(r"\b(today'?s|current|daily)\b.*\bmortgage rates?\b", re.I),
     re.compile(r"\bmortgage rates?\b.*\b(today|for (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\.? \d{1,2})\b", re.I),
     re.compile(r"\bcompare\b.*\bmortgage rates\b", re.I),
+    # Guest success stories and podcast episodes in written form. These are the
+    # single largest category on investor-education feeds and the least useful:
+    # entertainment about someone else's portfolio, not something to apply.
+    re.compile(r"\(rookie reply\)", re.I),
+    # "How Nathan Nicholson Cashed Out His 401(k)..." — a name-shaped pair plus a
+    # past-tense achievement verb. Both halves are required, so ordinary
+    # headlines like "How Ohio Landlords Should Read the New Reappraisal" pass.
+    re.compile(
+        r"^[Hh]ow [A-Z][a-z]+ [A-Z][\w'\u2019\-]+ "
+        r"(?i:built|flipped|cashed|turned|scaled|made|bought|quit|retired|replaced"
+        r"|grew|earned|saved|raised|closed|acquired|went|left|hit)\b"
+    ),
+    re.compile(r"^\$[\d,]+ ?[kK]?(?:/| per )?(?:year|month|yr|mo)\b", re.I),
+    re.compile(r"^(?:he|she|they) (?:made|turned|built|flipped|scaled) \$", re.I),
+    re.compile(r"\bflipped (?:his|her|their) way\b", re.I),
 ]
+
+# Podcast episodes often carry a neutral headline and only give themselves
+# away in the URL slug (biggerpockets.com/blog/rookie-765).
+URL_KILL_PATTERNS = [
+    re.compile(r"/(?:rookie|podcast|show|episode|bpradio|bp)[-_]?\d{2,}(?:/|$)", re.I),
+    re.compile(r"/(?:podcasts?|episodes?)/", re.I),
+]
+
+# Interview and sponsored formats give themselves away in the feed snippet or
+# the article body rather than the headline.
+SNIPPET_KILL_PATTERNS = [
+    re.compile(r"\b(today['\u2019]?s guest|our guest|joins us|on the show today)\b", re.I),
+]
+SPONSORED_BODY_PATTERNS = [
+    re.compile(r"\bthis (?:article|post|episode) is (?:presented|sponsored) by\b", re.I),
+    re.compile(r"\b(?:presented|sponsored) by\s+[A-Z]", re.I),
+    re.compile(r"\b(?:paid|branded) (?:content|post)\b", re.I),
+    re.compile(r"\bin partnership with\s+[A-Z]", re.I),
+    re.compile(r"\badvertorial\b", re.I),
+]
+
+
+# Podcast episodes published as articles. Some carry a neutral headline, a
+# neutral snippet, and an opaque URL slug, and only the transcript itself
+# gives them away.
+PODCAST_BODY_PATTERNS = [
+    re.compile(r"welcome to the\s+\S[^.]{0,50}?podcast", re.I),
+    re.compile(r"\b(?:today|earlier) (?:on|in) (?:the|this) (?:show|episode)\b", re.I),
+    re.compile(r"\b(?:in|on) (?:today'?s|this) episode\b", re.I),
+    re.compile(r"\b(?:my|our|today'?s) guest\b", re.I),
+    re.compile(r"\btoday in the show\b", re.I),
+]
+
+
+def is_podcast_transcript(text: str) -> bool:
+    """A written-up episode rather than a reported article."""
+    head = (text or "")[:2500]
+    return any(p.search(head) for p in PODCAST_BODY_PATTERNS)
+
+
+def is_sponsored(text: str) -> bool:
+    """Paid placement, usually disclosed in the body rather than the headline."""
+    head = (text or "")[:1200]
+    return any(p.search(head) for p in SPONSORED_BODY_PATTERNS)
 
 # Google News search occasionally surfaces non-US outlets on generic terms.
 # Nothing published under these country domains can be Columbus-relevant.
@@ -168,6 +227,22 @@ Score 7-10 only for:
 - Genuinely national operating shifts: institutional buying, build-to-rent, major software or utility changes
 
 Score 1-5 for: daily mortgage rate ticks, national home-sale stats with no Ohio or Columbus read-through, luxury or coastal real estate, general macroeconomics, listicles and rankings, evergreen how-to content, opinion and prediction pieces, anything a state or local outlet covers better.""",
+
+    "education": """EDUCATION tier. These come from investor education publishers rather than newsrooms. They are not news, and the Columbus read-through test does NOT apply to them. Judge them on one question instead: would a Columbus-area landlord or small investor running a handful of units learn something here they could actually apply to their own portfolio?
+
+Score 6-10 for:
+- Operating mechanics with real consequences: HOA and lien exposure, insurance coverage gaps, screening and lease practice, tax and entity structure, capital calls and partnership terms, eviction and turnover process
+- Analysis carrying actual numbers pegged to current conditions (build versus buy, financing structures, the rate environment)
+- Trend pieces that explain a mechanism, especially on the Midwest, small operators, build-to-rent, or new construction incentives
+- Fee, insurance, or regulatory shifts that reach small landlords
+
+Score 1-4 for, and prefer to kill outright:
+- Guest success stories and portfolio profiles. Anything shaped like "how someone built N rentals" or "$N a year in cash flow" is entertainment, not instruction.
+- Podcast or interview episodes written up as articles. The snippet usually says "today's guest" or similar.
+- Sponsored, presented-by, or partner content of any kind, however useful it looks.
+- Beginner explainers of things a working landlord already knows.
+- Pure rankings and best-places-to-invest lists, unless the piece analyzes a mechanism rather than ordering cities.
+- Anything a Columbus or Ohio source is covering with local specifics, which always wins the slot instead.""",
 
     "state": """STATE tier (Ohio). A statewide story needs a clear housing or property nexus and a plausible effect on Columbus-area landlords and investors.
 
@@ -305,6 +380,7 @@ class Source:
     query: str = ""
     partner: str | None = None
     min_score: int | None = None
+    education: bool = False
 
 
 @dataclass
@@ -348,6 +424,7 @@ def load_config() -> Config:
             query=str(src.get("query", "")),
             partner=src.get("partner"),
             min_score=src.get("min_score"),
+            education=bool(src.get("education", False)),
         ))
     blocklist = [str(d).lower() for d in (raw.get("blocklist_domains") or [])]
     return Config(settings=settings, tiers=tiers, sources=sources, blocklist=blocklist)
@@ -459,18 +536,49 @@ def load_registry_fingerprints() -> set[str]:
     return {str(k) for k in items.keys()} if isinstance(items, dict) else set()
 
 
+def load_robots(root: str) -> tuple[Any, str]:
+    """Fetch and parse robots.txt using the User-Agent we actually crawl with.
+
+    Python's RobotFileParser.read() fetches robots.txt with urllib's default
+    agent ("Python-urllib/3.x"), which a lot of CDNs answer with 403. The
+    parser then treats that 403 as "disallow everything" and swallows the
+    error, so a publisher who never restricted us looks forbidden. Six of the
+    eight sites we had recorded as robots-blocked were this bug rather than
+    any publisher policy, so fetch it ourselves and be explicit about the
+    difference between "they said no" and "we could not read the file."
+
+    Returns (parser or None, reason). A None parser means no restrictions
+    could be read, which we treat as allowed.
+    """
+    url = f"{root}/robots.txt"
+    try:
+        r = httpx.get(url, follow_redirects=True, timeout=HTTP_TIMEOUT,
+                      headers={"User-Agent": USER_AGENT})
+    except Exception:
+        return None, "unreachable"
+
+    if r.status_code in (401, 403):
+        # The publisher is refusing our agent outright, robots.txt included.
+        return "deny", "refused"
+    if r.status_code >= 400:
+        return None, f"no robots.txt ({r.status_code})"
+
+    rp = urllib.robotparser.RobotFileParser()
+    try:
+        rp.parse(r.text.splitlines())
+    except Exception:
+        return None, "unparseable"
+    return rp, "ok"
+
+
 def robots_allowed(url: str, cache: dict[str, Any]) -> bool:
     parsed = urllib.parse.urlsplit(url)
     root = f"{parsed.scheme}://{parsed.netloc}"
     if root not in cache:
-        rp = urllib.robotparser.RobotFileParser()
-        rp.set_url(f"{root}/robots.txt")
-        try:
-            rp.read()
-        except Exception:
-            rp = None  # unreachable robots.txt: treat as allowed
-        cache[root] = rp
-    rp = cache[root]
+        cache[root] = load_robots(root)
+    rp, reason = cache[root]
+    if rp == "deny":
+        return False
     if rp is None:
         return True
     try:
@@ -501,6 +609,16 @@ class Candidate:
     @property
     def tier(self) -> str:
         return self.source.scope
+
+    @property
+    def group(self) -> str:
+        """Which bar and daily cap this competes under.
+
+        Education sources are scored and capped separately from news, but the
+        item they produce still carries the source's own scope so it files on
+        the site exactly where a national news item would.
+        """
+        return "education" if self.source.education else self.source.scope
 
     @property
     def min_score_override(self) -> int | None:
@@ -615,6 +733,12 @@ def collect_candidates(cfg: Config, state: dict, only_source: str | None, only_t
             batch_seen.add(url)
 
             snippet = strip_html(entry.get("summary") or entry.get("description") or "")[:700]
+            if any(pp.search(snippet) for pp in SNIPPET_KILL_PATTERNS) or is_sponsored(snippet):
+                stats["title_kill"] += 1
+                continue
+            if any(pp.search(url) for pp in URL_KILL_PATTERNS):
+                stats["title_kill"] += 1
+                continue
             feed_body = ""
             content = entry.get("content")
             if content and isinstance(content, list):
@@ -716,7 +840,7 @@ def parse_json_text(resp: Any) -> dict:
 
 
 def score_candidate(client: Any, usage: Usage, c: Candidate) -> tuple[int, bool, str, str]:
-    rubric = TIER_RUBRICS.get(c.tier, TIER_RUBRICS["local"])
+    rubric = TIER_RUBRICS.get(c.group, TIER_RUBRICS["local"])
     partner_note = (
         "\nThis item is PARTNER CONTENT from a publisher who has granted reuse rights. Educational explainers are welcome; company announcements and pricing news are not.\n"
         if c.partner else ""
@@ -754,7 +878,7 @@ def rewrite_candidate(client: Any, usage: Usage, c: Candidate, body: str) -> dic
         )
     user = (
         f"Rewrite this source into the BRIC.News format.\n{partner_note}\n"
-        f"TIER: {c.tier}\n"
+        f"TIER: {c.group}\n"
         f"SOURCE HEADLINE: {c.title}\n"
         f"PUBLISHER: {c.publisher_name or c.source_domain}\n"
         f"SOURCE URL: {c.url}\n"
@@ -898,8 +1022,10 @@ def agent_collect(cfg: Config, state: dict, out_path: Path, only_source: str | N
         "candidates": [
             {
                 "id": i,
-                "tier": c.tier,
-                "min_score": c.min_score_override or cfg.tiers[c.tier].min_score,
+                "tier": c.group,
+                "scope": c.source.scope,
+                "education": c.source.education,
+                "min_score": c.min_score_override or cfg.tiers[c.group].min_score,
                 "title": c.title,
                 "url": c.url,
                 "source_domain": c.source_domain,
@@ -943,6 +1069,10 @@ def agent_fetch(cfg: Config, url: str) -> int:
                 result["reason"] = "paywall"
             elif len(body) < cfg.settings.min_body_chars:
                 result["reason"] = f"thin page ({len(body)} chars)"
+            elif is_sponsored(body):
+                result["reason"] = "sponsored or presented-by content"
+            elif is_podcast_transcript(body):
+                result["reason"] = "podcast episode transcript"
             else:
                 result.update(ok=True, chars=len(body), body=body[:9000])
     print(json.dumps(result, ensure_ascii=False))
@@ -992,7 +1122,8 @@ def agent_write(cfg: Config, state: dict, items_path: Path, seen_path: Path | No
             stats["why_generic"] += 1
             log(f"[why-generic] {r['title'][:60]} :: {why[:70]}")
             continue
-        munis = [m for m in r.get("municipalities", []) if m in MUNICIPALITIES] if tier_name == "local" else []
+        item_scope = r.get("scope") if r.get("scope") in SCOPES else ("national" if tier_name == "education" else tier_name)
+        munis = [m for m in r.get("municipalities", []) if m in MUNICIPALITIES] if item_scope == "local" else []
         title = scrub_style(str(r["title"]).strip())[:120]
         fp = make_fingerprint(title, munis)
         if fp in known_fps:
@@ -1011,7 +1142,7 @@ def agent_write(cfg: Config, state: dict, items_path: Path, seen_path: Path | No
             "source_domain": domain,
             "source_name": str(r.get("source_name") or r.get("publisher_name") or domain).strip(),
             "published_at": str(r["published_at"])[:10],
-            "scope": tier_name,
+            "scope": item_scope,
             "topics": [t for t in r.get("topics", []) if t in TOPICS][:5],
             "municipalities": munis,
             "content_type": content_type,
@@ -1204,21 +1335,21 @@ def main() -> int:
             continue
         stats["scored"] += 1
         c.score, c.score_reason = score, reason
-        bar = c.min_score_override or cfg.tiers[c.tier].min_score
+        bar = c.min_score_override or cfg.tiers[c.group].min_score
         if kill:
             c.kill_reason = kill_reason or "killed by scorer"
             stats["killed"] += 1
-            log(f"[kill] {c.tier:8s} {score:2d} {c.source_domain:26s} {c.title[:70]} ({c.kill_reason})")
+            log(f"[kill] {c.group:9s} {score:2d} {c.source_domain:26s} {c.title[:70]} ({c.kill_reason})")
         elif score < bar:
             c.kill_reason = f"below bar ({score} < {bar})"
             stats["below_bar"] += 1
-            log(f"[low]  {c.tier:8s} {score:2d} {c.source_domain:26s} {c.title[:70]}")
+            log(f"[low]  {c.group:9s} {score:2d} {c.source_domain:26s} {c.title[:70]}")
         else:
-            log(f"[pass] {c.tier:8s} {score:2d} {c.source_domain:26s} {c.title[:70]}")
+            log(f"[pass] {c.group:9s} {score:2d} {c.source_domain:26s} {c.title[:70]}")
 
     # 3. SELECT + 4. WRITE, per tier, filling caps from the top of the ranking.
     published: list[dict] = []
-    stats.update({"fetch_failed": 0, "paywall": 0, "robots": 0, "thin": 0, "why_generic": 0, "dupe_fp": 0, "write_errors": 0})
+    stats.update({"fetch_failed": 0, "paywall": 0, "robots": 0, "thin": 0, "sponsored": 0, "podcast": 0, "why_generic": 0, "dupe_fp": 0, "write_errors": 0})
     robots_cache: dict[str, Any] = {}
     seen_urls = set(state.get("seen_urls", []))
     total_written = 0
@@ -1230,7 +1361,7 @@ def main() -> int:
             already = int(daily.get(tier_name, 0))
             slots = max(0, tier.daily_cap - already)
             eligible = sorted(
-                (c for c in candidates if c.tier == tier_name and not c.kill_reason),
+                (c for c in candidates if c.group == tier_name and not c.kill_reason),
                 key=lambda c: (-c.score, -c.published_at.timestamp()),
             )
             if not eligible:
@@ -1265,6 +1396,14 @@ def main() -> int:
                         log(f"[thin] {len(body)} chars {c.url}")
                         stats["thin"] += 1
                         continue
+                    if is_sponsored(body):
+                        log(f"[sponsored] {c.url}")
+                        stats["sponsored"] = stats.get("sponsored", 0) + 1
+                        continue
+                    if is_podcast_transcript(body):
+                        log(f"[podcast] {c.url}")
+                        stats["podcast"] = stats.get("podcast", 0) + 1
+                        continue
 
                 try:
                     out = rewrite_candidate(client, usage, c, body)
@@ -1279,7 +1418,8 @@ def main() -> int:
                     stats["why_generic"] += 1
                     continue
 
-                munis = [m for m in out.get("municipalities", []) if m in MUNICIPALITIES] if tier_name == "local" else []
+                item_scope = c.source.scope
+                munis = [m for m in out.get("municipalities", []) if m in MUNICIPALITIES] if item_scope == "local" else []
                 title = scrub_style(out["title"].strip())[:120]
                 fp = make_fingerprint(title, munis)
                 if fp in known_fps:
@@ -1300,7 +1440,7 @@ def main() -> int:
                     "source_domain": c.source_domain,
                     "source_name": (out.get("source_name") or c.publisher_name or c.source_domain).strip(),
                     "published_at": c.published_at.date().isoformat(),
-                    "scope": tier_name,
+                    "scope": item_scope,
                     "topics": [t for t in out.get("topics", []) if t in TOPICS][:5],
                     "municipalities": munis,
                     "content_type": content_type,

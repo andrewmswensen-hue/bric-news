@@ -43,11 +43,14 @@ npm install && npm run build && npm run preview
    hard-kill (opinion, marketing, no property nexus, daily noise).
 3. **Select.** Per tier, keep items at or above the bar, rank by score, fill
    the daily cap. National: bar 7, cap 2. State: bar 7, cap 3. Local: bar 5,
-   cap 10. Partner (RLPM) items: bar 6. The cap does most of the quality
+   cap 10. Education (BiggerPockets and similar): bar 6, cap 2, judged on
+   whether a small Columbus landlord could apply it rather than on the
+   Columbus read-through test; items still file under their source's scope.
+   Partner (RLPM) items: bar 6. The cap does most of the quality
    work: it takes only the best N of the day, so a bar mainly matters on a
    thin day. National items must additionally pass the Columbus
    read-through test in the rubric.
-4. **Write.** Honor robots.txt, fetch the article, skip paywalls and thin
+4. **Write.** Honor robots.txt (see the note below), fetch the article, skip paywalls and thin
    pages, have Sonnet (`claude-sonnet-5`) write the BRIC title / summary /
    detail / why-it-matters, reject generic why-it-matters lines, dedupe by
    fingerprint, write markdown into `src/content/items/`.
@@ -64,6 +67,16 @@ and county action often lands days late), and the national bar at 7. To
 change volume again, edit `settings.max_age_days` and the `tiers` block in
 `scripts/supplemental_sources.yaml`, and the cron on the `bric-daily-feed`
 scheduled task.
+
+**Robots checking (fixed 2026-09-03).** `load_robots()` fetches robots.txt
+with our own User-Agent via httpx, rather than letting Python's
+`RobotFileParser.read()` do it. That default fetch uses `Python-urllib/3.x`,
+which many CDNs answer with 403, and the parser reads a 403 on robots.txt as
+"disallow everything" while swallowing the error. Six of eight publishers we
+had recorded as robots-blocked (the Dispatch, HousingWire, BiggerPockets,
+CommercialCafe, the Delaware Gazette, The Reporting Project) were never
+blocking us at all. Only Columbus Underground and Business First genuinely
+refuse, and they do it at the CDN rather than in robots.txt.
 
 **How it runs.** `scripts/AGENT_RUN.md` breaks the pipeline into
 `--collect-json`, `--fetch`, and `--write-items` so the Claude session does

@@ -51,6 +51,12 @@ tiers:
   local:
     min_score: 5
     daily_cap: 10
+  # Investor education publishers, scored and capped separately from news so
+  # a few useful evergreen pieces get through without competing with Columbus
+  # coverage for a slot. Items still file under their source's own scope.
+  education:
+    min_score: 6
+    daily_cap: 2
 
 sources:
   # ---------------------------------------------------------------- NATIONAL
@@ -60,7 +66,13 @@ sources:
     url: https://www.biggerpockets.com/blog/feed
     scope: national
     category: news
-    notes: 250-item feed, mostly evergreen education. The bar does the filtering.
+    education: true
+    notes: >
+      250-item feed of investor education rather than news. Scored against the
+      education rubric (would a small Columbus landlord learn something they
+      can apply) instead of the Columbus read-through test, and capped at 2 a
+      day. Guest success stories, podcast write-ups, and presented-by content
+      are killed before scoring.
 
   - id: multifamily-dive
     label: Multifamily Dive
@@ -281,9 +293,12 @@ sources:
 # Publishers that refuse automated access or paywall their content. Items
 # from these domains are dropped before any fetch. Getting them back on the
 # list requires a written OK from the publisher, never a workaround.
+# Verified 2026-09-03: these two refuse our crawler at the network level, not
+# in robots.txt. Their robots.txt permits us; the CDN answers 403 to every
+# request including the feed. Permission requests are pending with both.
 blocklist_domains:
-  - columbusunderground.com   # 403 to bots (tested 2026-09-01). Ask for permission.
-  - bizjournals.com           # Columbus Business First: 403 + paywall.
+  - columbusunderground.com
+  - bizjournals.com           # Columbus Business First
   - wsj.com
   - ft.com
   - nytimes.com
